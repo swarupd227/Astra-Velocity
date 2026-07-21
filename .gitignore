@@ -25,3 +25,6 @@ Thumbs.db
 /pgdata/
 /redisdata/
 *.log
+
+# Generated demo recordings
+/demo/
