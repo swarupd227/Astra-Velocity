@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
+/*
+ * Astra Velocity theme — premium consulting-grade: deep ink base, teal accent,
+ * amber highlight. Brandable via these tokens (Artizent-neutral by default).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f8fa;
+  --foreground: #0b1220;
+  --surface: #ffffff;
+  --surface-muted: #eef1f5;
+  --border: #d8dee7;
+  --accent: #0d9488; /* teal-600 */
+  --accent-soft: #ccfbf1;
+  --highlight: #d97706; /* amber-600 */
+  --ink: #0f172a;
+}
+
+.dark {
+  --background: #060a13;
+  --foreground: #e2e8f0;
+  --surface: #0d1424;
+  --surface-muted: #121b2e;
+  --border: #1e293b;
+  --accent: #2dd4bf; /* teal-400 */
+  --accent-soft: #042f2e;
+  --highlight: #fbbf24; /* amber-400 */
+  --ink: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-token: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-highlight: var(--highlight);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: var(--font-serif);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Editorial display headings */
+.font-display {
+  font-family: var(--font-serif), Georgia, serif;
+  letter-spacing: -0.01em;
 }

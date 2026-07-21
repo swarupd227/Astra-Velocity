@@ -8,6 +8,13 @@
       "when": 1784626512928,
       "tag": "0000_chunky_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784627308932,
+      "tag": "0001_nostalgic_otto_octavius",
+      "breakpoints": true
     }
   ]
 }
