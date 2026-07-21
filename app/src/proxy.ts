@@ -12,14 +12,20 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    cookieName:
-      process.env.NODE_ENV === "production"
-        ? "__Secure-authjs.session-token"
-        : "authjs.session-token",
-  });
+  // Cookie name depends on transport, not build mode: over HTTPS Auth.js uses
+  // the __Secure- prefix, over plain HTTP (local Docker) it cannot. Check both
+  // so a production image served on http://localhost keeps its session.
+  const token =
+    (await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+      cookieName: "__Secure-authjs.session-token",
+    })) ??
+    (await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+      cookieName: "authjs.session-token",
+    }));
 
   if (!token) {
     const login = new URL("/login", req.url);
