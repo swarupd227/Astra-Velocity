@@ -39,17 +39,22 @@ az acr build -r "$ACR" -t astra-velocity-worker:v1 --target worker ./app
 
 # ---- 4. PostgreSQL Flexible Server (Postgres 16) ----------------------------
 # --public-access 0.0.0.0 = "allow Azure services"; your IP added for migrations.
-az postgres flexible-server create -g "$RG" -n "$PG" -l "$LOC" \
+# NOTE: some regions are restricted for PG Flexible on sponsorship subscriptions
+# (eastus was, in practice). If create fails with "location is restricted", try:
+# westus2 -> centralus -> westus3 -> canadacentral -> northeurope.
+PG_LOC="westus2"
+az postgres flexible-server create -g "$RG" -n "$PG" -l "$PG_LOC" \
   --admin-user "$PG_ADMIN" --admin-password "$PG_PASS" \
   --tier Burstable --sku-name Standard_B1ms --storage-size 32 --version 16 \
   --public-access 0.0.0.0
-az postgres flexible-server firewall-rule create -g "$RG" --name "$PG" \
-  --rule-name allow-my-ip --start-ip-address "$MY_IP" --end-ip-address "$MY_IP"
-az postgres flexible-server db create -g "$RG" -s "$PG" -d astra_velocity
+az postgres flexible-server firewall-rule create -g "$RG" -s "$PG" -n allow-my-ip \
+  --start-ip-address "$MY_IP" --end-ip-address "$MY_IP"
+az postgres flexible-server db create -g "$RG" -s "$PG" -n astra_velocity
 
 DATABASE_URL="postgres://${PG_ADMIN}:${PG_PASS}@${PG}.postgres.database.azure.com:5432/astra_velocity?sslmode=require"
 
 # ---- 5. Azure Cache for Redis (Basic C0; provisioning takes ~15-20 min) -----
+# If this region is restricted too, use -l "$PG_LOC" instead.
 az redis create -g "$RG" -n "$REDIS" -l "$LOC" --sku Basic --vm-size c0
 REDIS_KEY="$(az redis list-keys -g "$RG" -n "$REDIS" --query primaryKey -o tsv)"
 REDIS_URL="rediss://:${REDIS_KEY}@${REDIS}.redis.cache.windows.net:6380"
