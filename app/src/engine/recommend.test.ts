@@ -181,6 +181,16 @@ describe("recommendElements", () => {
     expect(withOb.reasons.some((r) => r.includes("Schedule P"))).toBe(true);
   });
 
+  it("zero sector affinity excludes an element even with strong scenario fit", () => {
+    const lifeOnly = makeElement({
+      key: "life-glossary",
+      scenarioAffinity: { "report-integrity": 3 },
+      sectorAffinity: { "life-annuities": 3 }, // not listed for pc-personal
+    });
+    const recs = recommendElements(input, ctx([lifeOnly]));
+    expect(recs).toHaveLength(0);
+  });
+
   it("deterministic ordering: score desc, then name", () => {
     const a = makeElement({ key: "a", name: "Alpha", scenarioAffinity: { "report-integrity": 1 }, sectorAffinity: { "pc-personal": 1 } });
     const b = makeElement({ key: "b", name: "Beta", scenarioAffinity: { "report-integrity": 1 }, sectorAffinity: { "pc-personal": 1 } });

@@ -76,6 +76,11 @@ export function scoreElement(
   const scenarioFit = affinity(el.scenarioAffinity, input.scenario);
   const sectorFit = affinity(el.sectorAffinity, input.sector);
 
+  // Authoring convention: broadly applicable elements list many sectors (1-2),
+  // specialized ones only theirs. Zero sector affinity means "not for this
+  // sector" — a life glossary must never reach a P&C composition.
+  if (sectorFit === 0) return { score: 0, reasons };
+
   let score = scenarioFit * SCENARIO_WEIGHT + sectorFit * SECTOR_WEIGHT;
 
   if (scenarioFit >= 3) reasons.push(`Signature asset for the ${scenario.name} scenario`);
