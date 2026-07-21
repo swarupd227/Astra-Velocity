@@ -1,0 +1,27 @@
+# Python venv at repo root (pre-existing, not part of the platform)
+/Lib/
+/Scripts/
+pyvenv.cfg
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Docker volumes / local data
+/pgdata/
+/redisdata/
+*.log

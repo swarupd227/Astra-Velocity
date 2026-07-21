@@ -1,0 +1,92 @@
+name: astra-velocity
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: astra-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-astra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astra_local_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-astra_velocity}
+    ports:
+      # Host port 5433 (5432 is commonly taken on dev machines); in-network stays 5432
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-astra} -d ${POSTGRES_DB:-astra_velocity}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: astra-redis
+    ports:
+      # Host port 6380 to avoid clashing with any host-level redis; in-network stays 6379
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: web
+    container_name: astra-web
+    profiles: ["full"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD:-astra_local_dev}@db:5432/${POSTGRES_DB:-astra_velocity}
+      REDIS_URL: redis://redis:6379
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      AUTH_TRUST_HOST: "true"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: http://ollama:11434
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: worker
+    container_name: astra-worker
+    profiles: ["full"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD:-astra_local_dev}@db:5432/${POSTGRES_DB:-astra_velocity}
+      REDIS_URL: redis://redis:6379
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: http://ollama:11434
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Optional local LLM for fully-inside-the-boundary demos:
+  #   docker compose --profile ollama up -d
+  ollama:
+    image: ollama/ollama:latest
+    container_name: astra-ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollamadata:/root/.ollama
+
+volumes:
+  pgdata:
+  redisdata:
+  ollamadata:
