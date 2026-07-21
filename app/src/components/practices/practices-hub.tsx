@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   CAPABILITIES,
@@ -157,8 +158,17 @@ export function PracticesHub({
                       Operationalized by {ops.length} library element{ops.length === 1 ? "" : "s"}
                     </span>
                     {" — "}
-                    {ops.slice(0, 3).map((el) => el.name).join(" · ")}
-                    {ops.length > 3 ? " …" : ""}
+                    {ops.map((el, i) => (
+                      <span key={el.key}>
+                        {i > 0 && <span className="text-slate-600"> · </span>}
+                        <Link
+                          href={`/library/${el.key}`}
+                          className="text-teal-300 transition hover:text-teal-200 hover:underline"
+                        >
+                          {el.name}
+                        </Link>
+                      </span>
+                    ))}
                   </p>
                 )}
               </CardContent>

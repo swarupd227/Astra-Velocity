@@ -13,26 +13,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
 import { ElementCard } from "./element-card";
-
-const TYPE_LABELS: Record<ElementType, string> = {
-  "best-practice-card": "Best Practice Card",
-  "guideline-standard": "Guideline / Standard",
-  template: "Template",
-  "semantic-pack": "Semantic Pack",
-  "cde-library": "CDE Library",
-  "dq-rule-library": "DQ Rule Library",
-  agent: "Agent",
-  "playbook-method": "Playbook / Method",
-  toolkit: "Toolkit",
-  "metric-kpi": "Metric / KPI",
-  "training-module": "Training Module",
-  "dashboard-blueprint": "Dashboard Blueprint",
-};
-
-export { TYPE_LABELS };
+import { TYPE_LABELS } from "./type-labels";
 
 /** Client-side filterable browser over all pack elements, grouped by pack. */
-export function LibraryBrowser({ packs, elements }: { packs: Pack[]; elements: Element[] }) {
+export function LibraryBrowser({
+  packs,
+  elements,
+  stats,
+}: {
+  packs: Pack[];
+  elements: Element[];
+  /** Element key → concrete artifact stat ("24 terms"), computed server-side. */
+  stats: Record<string, string>;
+}) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<"" | ElementType>("");
   const [capability, setCapability] = useState<"" | Capability>("");
@@ -131,7 +124,12 @@ export function LibraryBrowser({ packs, elements }: { packs: Pack[]; elements: E
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {items.map((el) => (
-              <ElementCard key={el.key} element={el} typeLabel={TYPE_LABELS[el.type]} />
+              <ElementCard
+                key={el.key}
+                element={el}
+                typeLabel={TYPE_LABELS[el.type]}
+                stat={stats[el.key]}
+              />
             ))}
           </div>
         </section>

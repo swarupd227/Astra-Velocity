@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import type { Scenario } from "@/content/types";
@@ -70,7 +71,14 @@ function ElementRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="font-semibold text-white">{el.name}</h4>
+            <h4 className="font-semibold text-white">
+              <Link
+                href={`/library/${el.key}`}
+                className="transition hover:text-teal-300 hover:underline"
+              >
+                {el.name}
+              </Link>
+            </h4>
             <Badge variant="outline">{typeLabel(el.type)}</Badge>
             {packCode && <Badge>{packCode}</Badge>}
             <span className="text-xs tabular-nums text-slate-500">score {rec.score}</span>

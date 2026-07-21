@@ -190,7 +190,143 @@ export const AgentMetaSchema = z.object({
   guardrails: z.array(z.string()).min(2),
 });
 
+/**
+ * The artifact is the element's actual working content — what makes a library
+ * card open into a real asset instead of a description. Library-type artifacts
+ * ship as substantive starter samples of the full pack.
+ */
+export const ArtifactSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("glossary"),
+    note: z.string().optional(),
+    terms: z
+      .array(
+        z.object({
+          term: z.string(),
+          definition: z.string(),
+          domain: DataDomainSchema.optional(),
+          note: z.string().optional(),
+        }),
+      )
+      .min(5),
+  }),
+  z.object({
+    kind: z.literal("dq-rules"),
+    note: z.string().optional(),
+    rules: z
+      .array(
+        z.object({
+          id: Key,
+          name: z.string(),
+          expression: z.string().describe("executable-style rule expression"),
+          severity: z.enum(["critical", "serious", "warning"]),
+          rationale: z.string(),
+          obligationKey: Key.optional(),
+        }),
+      )
+      .min(3),
+  }),
+  z.object({
+    kind: z.literal("cde-set"),
+    note: z.string().optional(),
+    cdes: z
+      .array(
+        z.object({
+          name: z.string(),
+          domain: DataDomainSchema,
+          definition: z.string(),
+          qualityDimensions: z.array(z.string()).min(1),
+          exampleIssue: z.string().optional(),
+        }),
+      )
+      .min(3),
+  }),
+  z.object({
+    kind: z.literal("checklist"),
+    sections: z
+      .array(z.object({ title: z.string(), items: z.array(z.string()).min(2) }))
+      .min(1),
+  }),
+  z.object({
+    kind: z.literal("template"),
+    sections: z
+      .array(
+        z.object({
+          title: z.string(),
+          purpose: z.string(),
+          fields: z.array(z.string()).optional(),
+        }),
+      )
+      .min(2),
+  }),
+  z.object({
+    kind: z.literal("code"),
+    language: z.string(),
+    description: z.string(),
+    snippet: z.string().min(50),
+  }),
+  z.object({
+    kind: z.literal("curriculum"),
+    modules: z
+      .array(
+        z.object({
+          code: z.string(),
+          title: z.string(),
+          format: z.string(),
+          topics: z.array(z.string()).min(2),
+        }),
+      )
+      .min(2),
+  }),
+  z.object({
+    kind: z.literal("method"),
+    steps: z
+      .array(
+        z.object({
+          name: z.string(),
+          description: z.string(),
+          decisionRule: z.string().optional(),
+        }),
+      )
+      .min(3),
+  }),
+  z.object({
+    kind: z.literal("reference-data"),
+    sets: z
+      .array(
+        z.object({
+          name: z.string(),
+          codes: z
+            .array(
+              z.object({
+                code: z.string(),
+                label: z.string(),
+                note: z.string().optional(),
+              }),
+            )
+            .min(4),
+        }),
+      )
+      .min(1),
+  }),
+  z.object({
+    kind: z.literal("metric-spec"),
+    metrics: z
+      .array(
+        z.object({
+          name: z.string(),
+          definition: z.string(),
+          formula: z.string(),
+          target: z.string().optional(),
+        }),
+      )
+      .min(2),
+  }),
+]);
+export type Artifact = z.infer<typeof ArtifactSchema>;
+
 export const ElementSchema = z.object({
+  artifact: ArtifactSchema.optional(),
   key: Key,
   packKey: Key,
   type: ElementTypeSchema,

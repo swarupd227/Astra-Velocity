@@ -1,77 +1,81 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { CAPABILITY_LABELS, type Element } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 
 /**
- * One library element. Agents get a distinct "digital co-worker" treatment:
- * teal border accent plus the drafts / human-decides / leverage contract.
+ * One library element — the whole card opens the element's detail page, where
+ * its working artifact renders in full. Agents keep the teal "digital
+ * co-worker" accent; the stat chip surfaces concrete artifact contents
+ * ("24 terms", "18 rules") computed server-side.
  */
-export function ElementCard({ element, typeLabel }: { element: Element; typeLabel: string }) {
+export function ElementCard({
+  element,
+  typeLabel,
+  stat,
+}: {
+  element: Element;
+  typeLabel: string;
+  stat?: string;
+}) {
   const isAgent = element.type === "agent";
 
   return (
-    <Card className={isAgent ? "border-teal-500/50 bg-teal-500/[0.04]" : undefined}>
-      <CardHeader>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={isAgent ? "accent" : "default"}>{isAgent ? "Agent co-worker" : typeLabel}</Badge>
-          {element.effortSavedStewardWeeks !== undefined && (
-            <Badge variant="success">saves ~{element.effortSavedStewardWeeks} steward-weeks</Badge>
-          )}
-        </div>
-        <CardTitle className="text-sm">{element.name}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-slate-400">{element.pitch}</p>
-
-        <div className="flex flex-wrap gap-1.5">
-          {element.capabilities.map((c) => (
-            <Badge key={c} variant="outline">
-              {CAPABILITY_LABELS[c]}
+    <Link href={`/library/${element.key}`} className="group block h-full">
+      <Card
+        className={cn(
+          "flex h-full flex-col transition group-hover:border-teal-500/60",
+          isAgent && "border-teal-500/50 bg-teal-500/[0.04]",
+        )}
+      >
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={isAgent ? "accent" : "default"}>
+              {isAgent ? "Agent co-worker" : typeLabel}
             </Badge>
-          ))}
-        </div>
+            {element.effortSavedStewardWeeks !== undefined && (
+              <Badge variant="success">saves ~{element.effortSavedStewardWeeks} steward-weeks</Badge>
+            )}
+          </div>
+          <CardTitle className="text-sm">{element.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-1 flex-col gap-3">
+          <p className="text-sm text-slate-400">{element.pitch}</p>
 
-        <p className="text-xs italic text-slate-500">{element.soWhat}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {element.capabilities.map((c) => (
+              <Badge key={c} variant="outline">
+                {CAPABILITY_LABELS[c]}
+              </Badge>
+            ))}
+          </div>
 
-        {isAgent && element.agentMeta && (
-          <div className="space-y-2 rounded-xl border border-teal-500/30 bg-slate-950/60 p-3">
-            <div className="text-xs text-slate-300">
-              <span className="font-semibold text-teal-300">Drafts: </span>
-              {element.agentMeta.drafts}
-            </div>
-            <div className="text-xs text-slate-300">
-              <span className="font-semibold text-teal-300">You decide: </span>
-              {element.agentMeta.humanDecides}
-            </div>
-            <div className="text-xs text-slate-300">
-              <span className="font-semibold text-teal-300">Measured by: </span>
-              {element.agentMeta.leverageMetric}
-            </div>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {element.agentMeta.guardrails.map((g) => (
-                <span
-                  key={g}
-                  className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-300"
-                >
-                  {g}
+          {element.toolTags.length > 0 && (
+            <div className="flex flex-wrap gap-x-2 gap-y-1">
+              {element.toolTags.map((t) => (
+                <span key={t} className="text-[11px] text-slate-600">
+                  {t}
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {element.toolTags.length > 0 && (
-          <div className="flex flex-wrap gap-x-2 gap-y-1">
-            {element.toolTags.map((t) => (
-              <span key={t} className="text-[11px] text-slate-600">
-                {t}
+          <div className="mt-auto flex items-center gap-2 border-t border-slate-800/60 pt-3">
+            {stat && (
+              <span className="inline-flex items-center rounded-full bg-teal-500/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+                {stat}
               </span>
-            ))}
+            )}
+            <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition group-hover:text-teal-300">
+              Open <ArrowRight className="h-3.5 w-3.5" />
+            </span>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
