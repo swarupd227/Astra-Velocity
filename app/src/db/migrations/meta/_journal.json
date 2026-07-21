@@ -15,6 +15,13 @@
       "when": 1784627308932,
       "tag": "0001_nostalgic_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784635288985,
+      "tag": "0002_demonic_toad_men",
+      "breakpoints": true
     }
   ]
 }
