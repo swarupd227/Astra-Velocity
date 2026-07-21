@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ZodType } from "zod";
 import { env } from "@/lib/env";
+import { getAnthropicApiKey } from "@/ai/secrets";
 import { redact } from "./guardrails/redact";
 import { fallbackTemplate, interpolate } from "./prompts";
 import { getAiSetting, getPromptTemplate, recordAiCall } from "./store";
@@ -129,8 +130,9 @@ async function callAnthropic(args: {
   system: string;
   user: string;
   maxTokens: number;
+  apiKey: string;
 }): Promise<ProviderReply> {
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({ apiKey: args.apiKey });
   const response = await client.messages.create({
     model: args.model,
     max_tokens: args.maxTokens,
@@ -444,18 +446,22 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
   let degraded = false;
   let fallbackReason: string | undefined;
 
+  // Admin-managed key (encrypted in ai_settings) first, env var fallback —
+  // this is what lets Admin › AI take the platform live without a redeploy.
+  const anthropicKey = await getAnthropicApiKey();
+
   const invoke = async (userContent: string): Promise<ProviderReply> => {
     if (provider === "mock") {
       return callMock({ feature: req.feature, user: userContent, hasSchema: !!req.schema });
     }
     if (provider === "anthropic") {
-      return callAnthropic({ model, system, user: userContent, maxTokens });
+      return callAnthropic({ model, system, user: userContent, maxTokens, apiKey: anthropicKey });
     }
     return callOllama({ model, system, user: userContent, maxTokens });
   };
 
   const invokeWithFallback = async (userContent: string): Promise<ProviderReply> => {
-    if (provider === "anthropic" && !env.ANTHROPIC_API_KEY) {
+    if (provider === "anthropic" && !anthropicKey) {
       fallbackReason = "anthropic: no API key configured";
       provider = "mock";
       model = "mock";

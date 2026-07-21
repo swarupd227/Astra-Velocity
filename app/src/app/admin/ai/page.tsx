@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { avg, count, gte, sql, sum } from "drizzle-orm";
-import { ArrowLeft, Eraser, FileCheck2, ShieldCheck, Siren } from "lucide-react";
+import { ArrowLeft, Eraser, FileCheck2, KeyRound, ShieldCheck, Siren } from "lucide-react";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { aiCalls, aiSettings } from "@/db/schema";
@@ -11,7 +11,14 @@ import { AccessDenied } from "@/components/access-denied";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { saveRoutingAction, setKillSwitchAction } from "./actions";
+import { anthropicKeyStatus } from "@/ai/secrets";
+import {
+  removeAnthropicKeyAction,
+  saveRoutingAction,
+  setAnthropicKeyAction,
+  setKillSwitchAction,
+  testAnthropicAction,
+} from "./actions";
 
 export const metadata = { title: "AI Administration — Astra Velocity" };
 
@@ -52,9 +59,14 @@ interface UsageRow {
   mockCalls: number;
 }
 
-export default async function AdminAiPage() {
+export default async function AdminAiPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ test?: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  const sp = await searchParams;
 
   if (!hasPermission(session.user.role, "admin.ai")) {
     return (
@@ -65,6 +77,8 @@ export default async function AdminAiPage() {
       />
     );
   }
+
+  const keyStatus = await anthropicKeyStatus();
 
   const since30d = new Date();
   since30d.setDate(since30d.getDate() - 30);
@@ -142,6 +156,86 @@ export default async function AdminAiPage() {
           text="Every call — served, degraded, killed, or errored — writes an ai_calls row. No exceptions."
         />
       </div>
+
+      {/* Provider credentials */}
+      <section>
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+          <KeyRound className="h-4 w-4 text-teal-400" /> Provider credentials
+        </h2>
+        <p className="mt-1 text-sm text-slate-400">
+          The Anthropic key is encrypted at rest, shown only by its last 4 characters, and never
+          logged. An environment-supplied key acts as fallback. Saving takes effect on the next
+          call — no restart required.
+        </p>
+
+        {sp.test === "live" && (
+          <div className="mt-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            Connection test passed — the gateway reached Anthropic and AI is live.
+          </div>
+        )}
+        {sp.test === "degraded" && (
+          <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+            Connection test degraded to the mock provider — check that the key is valid and the
+            routing provider is set to anthropic.
+          </div>
+        )}
+
+        <div className="mt-3 grid gap-4 lg:grid-cols-[1fr_320px]">
+          <form
+            action={setAnthropicKeyAction}
+            className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
+          >
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-300">
+                Anthropic API key
+              </span>
+              <Input
+                name="apiKey"
+                type="password"
+                required
+                minLength={20}
+                autoComplete="off"
+                placeholder="sk-ant-…"
+              />
+            </label>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-slate-500">
+                Stored AES-256-GCM encrypted in ai_settings; audit records the change, never the
+                value.
+              </p>
+              <Button type="submit">Save key</Button>
+            </div>
+          </form>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+            <p className="text-sm font-medium text-slate-300">Status</p>
+            <p className="mt-2 text-sm">
+              {keyStatus.source === "none" ? (
+                <Badge variant="highlight">Not configured — mock fallback active</Badge>
+              ) : (
+                <Badge variant="success">
+                  Configured via {keyStatus.source === "admin" ? "Admin" : "environment"} · ends
+                  ····{keyStatus.last4}
+                </Badge>
+              )}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <form action={testAnthropicAction}>
+                <Button type="submit" variant="secondary" size="sm">
+                  Test connection
+                </Button>
+              </form>
+              {keyStatus.source === "admin" && (
+                <form action={removeAnthropicKeyAction}>
+                  <Button type="submit" variant="danger" size="sm">
+                    Remove key
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Routing */}
       <section>

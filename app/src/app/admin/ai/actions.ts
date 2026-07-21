@@ -60,6 +60,74 @@ export async function saveRoutingAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/ai");
 }
 
+const ApiKeySchema = z
+  .string()
+  .trim()
+  .min(20, "that does not look like an API key")
+  .max(300)
+  .regex(/^[A-Za-z0-9_-]+$/, "unexpected characters in key");
+
+/**
+ * Store the Anthropic API key (encrypted at rest, masked in UI). The raw value
+ * is never audited or logged — only the fact that it changed, and its last 4.
+ */
+export async function setAnthropicKeyAction(formData: FormData): Promise<void> {
+  const admin = await requirePermission("admin.ai");
+  const key = ApiKeySchema.parse(formData.get("apiKey"));
+
+  const { setAnthropicApiKey } = await import("@/ai/secrets");
+  await setAnthropicApiKey(key, admin.id);
+
+  await db.insert(auditLog).values({
+    actorType: "human",
+    actorId: admin.id,
+    action: "admin.ai.credential.set",
+    entityType: "ai_setting",
+    entityId: "secret.anthropic-api-key",
+    detail: { provider: "anthropic", last4: key.slice(-4) },
+  });
+
+  revalidatePath("/admin/ai");
+}
+
+/** Remove the admin-stored key (env fallback, if any, then applies). */
+export async function removeAnthropicKeyAction(): Promise<void> {
+  const admin = await requirePermission("admin.ai");
+  const { removeAnthropicApiKey } = await import("@/ai/secrets");
+  await removeAnthropicApiKey();
+
+  await db.insert(auditLog).values({
+    actorType: "human",
+    actorId: admin.id,
+    action: "admin.ai.credential.remove",
+    entityType: "ai_setting",
+    entityId: "secret.anthropic-api-key",
+    detail: { provider: "anthropic" },
+  });
+
+  revalidatePath("/admin/ai");
+}
+
+/**
+ * Fire one minimal call through the gateway against the live provider and
+ * report whether it stayed live or degraded to mock. Audited like any AI call.
+ */
+export async function testAnthropicAction(): Promise<void> {
+  const admin = await requirePermission("admin.ai");
+  const { callModel } = await import("@/ai/gateway");
+  const reply = await callModel({
+    feature: "admin-connection-test",
+    system: "Reply with the single word OK.",
+    user: "Connection test.",
+    maxTokens: 16,
+    userId: admin.id,
+  });
+  const live = reply.status === "ok" && !reply.degraded;
+  revalidatePath(`/admin/ai`);
+  const { redirect } = await import("next/navigation");
+  redirect(`/admin/ai?test=${live ? "live" : "degraded"}`);
+}
+
 const KillSwitchSchema = z.object({
   scope: z.enum(["all", "library-qa", "copilot-compose"]),
   engaged: z.enum(["true", "false"]),
