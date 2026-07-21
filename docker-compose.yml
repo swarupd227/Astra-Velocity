@@ -49,7 +49,8 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       NODE_ENV: production
     ports:
-      - "3000:3000"
+      # Host port 3100 (3000 is held by Docker Desktop's backend on some machines)
+      - "3100:3000"
     depends_on:
       db:
         condition: service_healthy
