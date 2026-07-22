@@ -8,8 +8,9 @@ import { aiCalls, aiSettings } from "@/db/schema";
 import { DEFAULT_ROUTING, type AiRouting } from "@/ai/gateway";
 import { hasPermission } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
+import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Input, Select } from "@/components/ui/input";
 import { anthropicKeyStatus } from "@/ai/secrets";
 import {
@@ -181,8 +182,10 @@ export default async function AdminAiPage({
         )}
 
         <div className="mt-3 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <form
+          <ActionForm
             action={setAnthropicKeyAction}
+            success="API key saved — takes effect on the next call"
+            error="Could not save the key — check its format and try again."
             className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
           >
             <label className="block">
@@ -203,9 +206,9 @@ export default async function AdminAiPage({
                 Stored AES-256-GCM encrypted in ai_settings; audit records the change, never the
                 value.
               </p>
-              <Button type="submit">Save key</Button>
+              <SubmitButton pendingLabel="Saving…">Save key</SubmitButton>
             </div>
-          </form>
+          </ActionForm>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
             <p className="text-sm font-medium text-slate-300">Status</p>
@@ -220,17 +223,29 @@ export default async function AdminAiPage({
               )}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <form action={testAnthropicAction}>
-                <Button type="submit" variant="secondary" size="sm">
+              <ActionForm
+                action={testAnthropicAction}
+                error="Connection test failed — please try again."
+              >
+                <SubmitButton variant="secondary" size="sm" pendingLabel="Testing…">
                   Test connection
-                </Button>
-              </form>
+                </SubmitButton>
+              </ActionForm>
               {keyStatus.source === "admin" && (
-                <form action={removeAnthropicKeyAction}>
-                  <Button type="submit" variant="danger" size="sm">
+                <ActionForm
+                  action={removeAnthropicKeyAction}
+                  success="Anthropic key removed — environment fallback now applies"
+                  error="Could not remove the key — please try again."
+                >
+                  <ConfirmButton
+                    variant="danger"
+                    size="sm"
+                    prompt="Remove the stored key?"
+                    confirmLabel="Remove"
+                  >
                     Remove key
-                  </Button>
-                </form>
+                  </ConfirmButton>
+                </ActionForm>
               )}
             </div>
           </div>
@@ -306,17 +321,33 @@ export default async function AdminAiPage({
                     ? "Pauses every AI feature platform-wide."
                     : `Pauses the ${scope} feature only.`}
                 </p>
-                <form action={setKillSwitchAction} className="mt-3">
+                <ActionForm
+                  action={setKillSwitchAction}
+                  success={
+                    engaged
+                      ? `Kill-switch released for ${scope} — AI resumes on the next call`
+                      : `Kill-switch engaged for ${scope} — AI assistance is paused`
+                  }
+                  error="Could not update the kill-switch — please try again."
+                  className="mt-3"
+                >
                   <input type="hidden" name="scope" value={scope} />
                   <input type="hidden" name="engaged" value={engaged ? "false" : "true"} />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    variant={engaged ? "secondary" : "danger"}
-                  >
-                    {engaged ? "Release" : "Engage"}
-                  </Button>
-                </form>
+                  {engaged ? (
+                    <SubmitButton size="sm" variant="secondary" pendingLabel="Releasing…">
+                      Release
+                    </SubmitButton>
+                  ) : (
+                    <ConfirmButton
+                      size="sm"
+                      variant="danger"
+                      prompt={`Pause AI for ${scope}?`}
+                      confirmLabel="Engage"
+                    >
+                      Engage
+                    </ConfirmButton>
+                  )}
+                </ActionForm>
               </div>
             );
           })}
@@ -403,12 +434,17 @@ function RoutingRow({
         )}
       </td>
       <td className="px-4 py-3">
-        <form id={`routing-${feature}`} action={saveRoutingAction}>
+        <ActionForm
+          id={`routing-${feature}`}
+          action={saveRoutingAction}
+          success={`Routing saved for ${label} — takes effect on the next call`}
+          error="Could not save routing — a model id is required."
+        >
           <input type="hidden" name="feature" value={feature} />
-          <Button type="submit" variant="secondary" size="sm">
+          <SubmitButton variant="secondary" size="sm" pendingLabel="Saving…">
             Save
-          </Button>
-        </form>
+          </SubmitButton>
+        </ActionForm>
       </td>
     </tr>
   );

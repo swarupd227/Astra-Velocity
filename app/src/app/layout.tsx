@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -23,6 +24,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-slate-950 font-sans text-slate-100">
         <AppShell>{children}</AppShell>
+        <Toaster />
       </body>
     </html>
   );

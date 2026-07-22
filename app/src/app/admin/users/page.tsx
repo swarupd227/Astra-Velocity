@@ -7,8 +7,9 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { hasPermission, ROLE_LABELS, ROLES } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
+import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Select } from "@/components/ui/input";
 import { setUserActiveAction, updateUserRoleAction } from "./actions";
 import { InviteUserForm } from "./invite-form";
@@ -99,7 +100,12 @@ export default async function AdminUsersPage({
                   </td>
                   <td className="px-4 py-3 text-slate-300">{u.email}</td>
                   <td className="px-4 py-3">
-                    <form action={updateUserRoleAction} className="flex items-center gap-2">
+                    <ActionForm
+                      action={updateUserRoleAction}
+                      success={`Role updated for ${u.email} — takes effect at next sign-in`}
+                      error="Could not update the role — please try again."
+                      className="flex items-center gap-2"
+                    >
                       <input type="hidden" name="userId" value={u.id} />
                       <Select
                         name="role"
@@ -113,10 +119,10 @@ export default async function AdminUsersPage({
                           </option>
                         ))}
                       </Select>
-                      <Button type="submit" variant="secondary" size="sm">
+                      <SubmitButton variant="secondary" size="sm" pendingLabel="Applying…">
                         Apply
-                      </Button>
-                    </form>
+                      </SubmitButton>
+                    </ActionForm>
                   </td>
                   <td className="px-4 py-3">
                     {u.isActive ? (
@@ -129,24 +135,35 @@ export default async function AdminUsersPage({
                     {dateFmt.format(u.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    <form action={setUserActiveAction}>
+                    <ActionForm
+                      action={setUserActiveAction}
+                      success={
+                        u.isActive
+                          ? `Account deactivated for ${u.email} — audit history retained`
+                          : `Account reactivated for ${u.email}`
+                      }
+                      error="Could not update the account status — please try again."
+                    >
                       <input type="hidden" name="userId" value={u.id} />
                       <input type="hidden" name="active" value={u.isActive ? "false" : "true"} />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="sm"
-                        className={u.isActive ? "text-red-300" : "text-teal-300"}
-                        disabled={isSelf && u.isActive}
-                        title={
-                          isSelf && u.isActive
-                            ? "You cannot deactivate your own account"
-                            : undefined
-                        }
-                      >
-                        {u.isActive ? "Deactivate" : "Reactivate"}
-                      </Button>
-                    </form>
+                      {u.isActive ? (
+                        <ConfirmButton
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-300"
+                          prompt="Deactivate this account?"
+                          confirmLabel="Deactivate"
+                          disabled={isSelf}
+                          title={isSelf ? "You cannot deactivate your own account" : undefined}
+                        >
+                          Deactivate
+                        </ConfirmButton>
+                      ) : (
+                        <SubmitButton variant="ghost" size="sm" className="text-teal-300">
+                          Reactivate
+                        </SubmitButton>
+                      )}
+                    </ActionForm>
                   </td>
                 </tr>
               );

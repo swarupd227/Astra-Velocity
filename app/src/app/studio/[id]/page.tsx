@@ -7,8 +7,9 @@ import { db } from "@/db/client";
 import { contentItems } from "@/db/schema";
 import { hasPermission } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
+import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import { createDraftAction, discardDraftAction, publishDraftAction } from "../actions";
 import { KIND_LABELS, payloadName } from "../kind-schemas";
 import { DraftEditor } from "./draft-editor";
@@ -149,34 +150,51 @@ export default async function StudioItemPage({
                   <FilePlus2 className="h-4 w-4" /> Open draft revision (v{existingDraft.version})
                 </Link>
               ) : (
-                <form action={createDraftAction}>
+                <ActionForm
+                  action={createDraftAction}
+                  success="Draft revision created — you are now editing the new version"
+                  error="Could not create a draft revision — please try again."
+                >
                   <input type="hidden" name="id" value={item.id} />
-                  <Button type="submit" variant="secondary">
+                  <SubmitButton variant="secondary" pendingLabel="Creating…">
                     <FilePlus2 className="h-4 w-4" /> Create draft revision
-                  </Button>
-                </form>
+                  </SubmitButton>
+                </ActionForm>
               ))}
 
             {item.status === "draft" && (
               <>
                 {canPublish ? (
-                  <form action={publishDraftAction}>
+                  <ActionForm
+                    action={publishDraftAction}
+                    success="Draft published — the previous version was deprecated"
+                    error="Could not publish the draft — please try again."
+                  >
                     <input type="hidden" name="id" value={item.id} />
-                    <Button type="submit">
+                    <SubmitButton pendingLabel="Publishing…">
                       <Rocket className="h-4 w-4" /> Publish draft
-                    </Button>
-                  </form>
+                    </SubmitButton>
+                  </ActionForm>
                 ) : (
                   <p className="text-xs text-slate-500">
                     Publishing requires the library.publish permission.
                   </p>
                 )}
-                <form action={discardDraftAction}>
+                <ActionForm
+                  action={discardDraftAction}
+                  success="Draft discarded — logged to audit trail"
+                  error="Could not discard the draft — please try again."
+                >
                   <input type="hidden" name="id" value={item.id} />
-                  <Button type="submit" variant="ghost" className="text-red-300">
+                  <ConfirmButton
+                    variant="ghost"
+                    className="text-red-300"
+                    prompt="Discard this draft?"
+                    confirmLabel="Discard"
+                  >
                     <Trash2 className="h-4 w-4" /> Discard draft
-                  </Button>
-                </form>
+                  </ConfirmButton>
+                </ActionForm>
               </>
             )}
           </section>

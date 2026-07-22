@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
+import { toast } from "@/components/ui/toaster";
 import { saveDraftAction, type SaveDraftState } from "../actions";
 
 const initialState: SaveDraftState = { ok: false };
@@ -22,6 +23,15 @@ export function DraftEditor({
   initialPayload: string;
 }) {
   const [state, formAction, pending] = useActionState(saveDraftAction, initialState);
+
+  // Toast when a save settles; the inline blocks below carry the details.
+  useEffect(() => {
+    if (state.ok && state.savedAt) {
+      toast("Draft saved and validated — logged to audit trail", "success");
+    } else if (!state.ok && state.errors && state.errors.length > 0) {
+      toast("Validation failed — nothing was saved", "error");
+    }
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-3">

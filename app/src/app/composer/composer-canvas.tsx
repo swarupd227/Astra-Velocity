@@ -9,10 +9,12 @@ import {
   type DashboardRecommendation,
   type ElementRecommendation,
 } from "@/engine/recommend";
+import { SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { isNextRedirect, toast } from "@/components/ui/toaster";
 import { CoverageBars } from "@/components/viz/coverage-bars";
 import { saveProjectAction } from "./actions";
 
@@ -245,7 +247,18 @@ export function ComposerCanvas({
             <CardTitle>Save project</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={saveProjectAction} className="space-y-3">
+            <form
+              action={async (formData: FormData) => {
+                try {
+                  // On success the action redirects to the new blueprint.
+                  await saveProjectAction(formData);
+                } catch (err) {
+                  if (isNextRedirect(err)) throw err;
+                  toast("Could not save the project — check the form and try again.", "error");
+                }
+              }}
+              className="space-y-3"
+            >
               <input type="hidden" name="sectorKey" value={sectorKey} />
               <input type="hidden" name="scenarioKey" value={scenario.key} />
               <input
@@ -277,9 +290,13 @@ export function ComposerCanvas({
                   placeholder="e.g. Meridian Mutual pursuit"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={selected.size === 0}>
+              <SubmitButton
+                className="w-full"
+                disabled={selected.size === 0}
+                pendingLabel="Saving…"
+              >
                 Save project
-              </Button>
+              </SubmitButton>
               {selected.size === 0 && (
                 <p className="text-xs text-amber-300">Select at least one element to save.</p>
               )}

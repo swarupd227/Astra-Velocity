@@ -4,6 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { AlertTriangle, Bot, Check, Pencil, Play, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
+import { isNextRedirect, toast } from "@/components/ui/toaster";
 import { SUGGESTION_KIND_LABELS, type SuggestionKind } from "@/sim/generate-suggestions";
 import { decideSuggestionAction, runAgentsAction } from "./actions";
 
@@ -42,6 +44,11 @@ export function StewardQueue({
   const [agentFilter, setAgentFilter] = useState<string>("all");
   const [kindFilter, setKindFilter] = useState<string>("all");
   const [running, startRun] = useTransition();
+  const [, startDecision] = useTransition();
+  // Optimistically hidden cards: removed on click, restored if the action fails.
+  const [removedIds, setRemovedIds] = useState<ReadonlySet<string>>(new Set());
+
+  const visible = suggestions.filter((s) => !removedIds.has(s.id));
 
   const agentByKey = useMemo(() => new Map(agents.map((a) => [a.key, a])), [agents]);
   const kinds = useMemo(
@@ -49,11 +56,41 @@ export function StewardQueue({
     [suggestions],
   );
 
-  const filtered = suggestions.filter(
+  const filtered = visible.filter(
     (s) =>
       (agentFilter === "all" || s.agentKey === agentFilter) &&
       (kindFilter === "all" || s.kind === kindFilter),
   );
+
+  /** Remove the card immediately, decide server-side, revert + toast on failure. */
+  const decide = (s: QueueSuggestion, decision: "approve" | "reject", note?: string) => {
+    setRemovedIds((prev) => new Set(prev).add(s.id));
+    startDecision(async () => {
+      const formData = new FormData();
+      formData.set("suggestionId", s.id);
+      formData.set("decision", decision);
+      if (note) formData.set("note", note);
+      try {
+        await decideSuggestionAction(formData);
+        toast(
+          decision === "reject"
+            ? "Rejected — logged to audit trail"
+            : note
+              ? "Approved with note — logged to audit trail"
+              : "Approved — logged to audit trail",
+          decision === "reject" ? "info" : "success",
+        );
+      } catch (err) {
+        if (isNextRedirect(err)) throw err;
+        setRemovedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(s.id);
+          return next;
+        });
+        toast("Decision failed — the suggestion was restored to the queue.", "error");
+      }
+    });
+  };
 
   const grouped = useMemo(() => {
     const map = new Map<string, QueueSuggestion[]>();
@@ -71,9 +108,18 @@ export function StewardQueue({
     );
   }, [filtered, agents]);
 
-  const runAgents = () => startRun(async () => runAgentsAction());
+  const runAgents = () =>
+    startRun(async () => {
+      try {
+        await runAgentsAction();
+        toast("Agents finished drafting — fresh suggestions are in the queue.", "success");
+      } catch (err) {
+        if (isNextRedirect(err)) throw err;
+        toast("Agent run failed — please try again.", "error");
+      }
+    });
 
-  if (suggestions.length === 0) {
+  if (visible.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center">
         <Bot className="mx-auto h-8 w-8 text-slate-600" />
@@ -124,7 +170,7 @@ export function StewardQueue({
           </select>
         </label>
         <span className="text-xs text-slate-500">
-          {filtered.length} of {suggestions.length} pending
+          {filtered.length} of {visible.length} pending
         </span>
         <div className="ml-auto">
           <Button variant="secondary" size="sm" onClick={runAgents} disabled={running}>
@@ -147,7 +193,11 @@ export function StewardQueue({
             </div>
             <ul className="grid gap-3 lg:grid-cols-2">
               {items.map((s) => (
-                <SuggestionCard key={s.id} suggestion={s} />
+                <SuggestionCard
+                  key={s.id}
+                  suggestion={s}
+                  onDecide={(decision, note) => decide(s, decision, note)}
+                />
               ))}
             </ul>
           </section>
@@ -157,7 +207,13 @@ export function StewardQueue({
   );
 }
 
-function SuggestionCard({ suggestion: s }: { suggestion: QueueSuggestion }) {
+function SuggestionCard({
+  suggestion: s,
+  onDecide,
+}: {
+  suggestion: QueueSuggestion;
+  onDecide: (decision: "approve" | "reject", note?: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const lowConfidence = s.confidence < 0.7;
   const pct = Math.round(s.confidence * 100);
@@ -197,9 +253,14 @@ function SuggestionCard({ suggestion: s }: { suggestion: QueueSuggestion }) {
 
       <div className="mt-3 border-t border-slate-800 pt-3">
         {editing ? (
-          <form action={decideSuggestionAction} className="space-y-2">
-            <input type="hidden" name="suggestionId" value={s.id} />
-            <input type="hidden" name="decision" value="approve" />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const note = String(new FormData(e.currentTarget).get("note") ?? "").trim();
+              onDecide("approve", note || undefined);
+            }}
+            className="space-y-2"
+          >
             <textarea
               name="note"
               rows={2}
@@ -218,23 +279,23 @@ function SuggestionCard({ suggestion: s }: { suggestion: QueueSuggestion }) {
           </form>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <form action={decideSuggestionAction}>
-              <input type="hidden" name="suggestionId" value={s.id} />
-              <input type="hidden" name="decision" value="approve" />
-              <Button type="submit" size="sm">
-                <Check className="h-3.5 w-3.5" /> Approve
-              </Button>
-            </form>
+            <Button type="button" size="sm" onClick={() => onDecide("approve")}>
+              <Check className="h-3.5 w-3.5" /> Approve
+            </Button>
             <Button type="button" variant="secondary" size="sm" onClick={() => setEditing(true)}>
               <Pencil className="h-3.5 w-3.5" /> Edit note + approve
             </Button>
-            <form action={decideSuggestionAction}>
-              <input type="hidden" name="suggestionId" value={s.id} />
-              <input type="hidden" name="decision" value="reject" />
-              <Button type="submit" variant="ghost" size="sm" className="text-slate-400">
-                <X className="h-3.5 w-3.5" /> Reject
-              </Button>
-            </form>
+            <ConfirmButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-slate-400"
+              prompt="Reject this suggestion?"
+              confirmLabel="Reject"
+              onConfirm={() => onDecide("reject")}
+            >
+              <X className="h-3.5 w-3.5" /> Reject
+            </ConfirmButton>
           </div>
         )}
       </div>

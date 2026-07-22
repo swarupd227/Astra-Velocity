@@ -1,104 +1,24 @@
 import Link from "next/link";
-import {
-  Award,
-  Blocks,
-  Bot,
-  Compass,
-  Gauge,
-  Inbox,
-  KanbanSquare,
-  LibraryBig,
-  Map,
-  PenSquare,
-  Settings2,
-  Sparkles,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
 import { auth, signOut } from "@/auth";
 import { getActivePersona, switchPersona } from "@/lib/persona";
+import { visibleNavGroups } from "@/lib/nav";
 import { assumablePersonas, ROLE_HOMES, ROLE_LABELS, type Role } from "@/lib/roles";
+import { MobileNav } from "@/components/mobile-nav";
 import { RoleSwitcher } from "@/components/role-switcher";
-
-const ALL_PERSONAS: Role[] = [
-  "executive",
-  "pursuit_lead",
-  "delivery_lead",
-  "data_steward",
-  "content_curator",
-  "platform_admin",
-];
-
-/** Persona-filtered primary navigation, grouped for the sidebar. */
-const NAV_GROUPS: {
-  title: string;
-  items: { href: string; label: string; icon: LucideIcon; personas: Role[] }[];
-}[] = [
-  {
-    title: "Explore",
-    items: [
-      { href: "/explore", label: "Landscape", icon: Compass, personas: ALL_PERSONAS },
-      { href: "/scenarios", label: "Scenarios", icon: Map, personas: ALL_PERSONAS },
-      { href: "/library", label: "Pack Library", icon: LibraryBig, personas: ALL_PERSONAS },
-      { href: "/practices", label: "Best Practices", icon: Award, personas: ALL_PERSONAS },
-    ],
-  },
-  {
-    title: "Deliver",
-    items: [
-      {
-        href: "/composer",
-        label: "Composer",
-        icon: Blocks,
-        personas: ["pursuit_lead", "delivery_lead", "platform_admin"],
-      },
-      {
-        href: "/projects",
-        label: "Projects",
-        icon: KanbanSquare,
-        personas: ["pursuit_lead", "delivery_lead", "executive", "platform_admin"],
-      },
-      {
-        href: "/copilot",
-        label: "Copilot",
-        icon: Sparkles,
-        personas: ["pursuit_lead", "delivery_lead", "data_steward", "content_curator", "platform_admin"],
-      },
-    ],
-  },
-  {
-    title: "Operate",
-    items: [
-      { href: "/dashboards", label: "Dashboards", icon: Gauge, personas: ALL_PERSONAS },
-      { href: "/steward", label: "My Day", icon: Inbox, personas: ["data_steward", "platform_admin"] },
-      {
-        href: "/agents",
-        label: "Agents",
-        icon: Bot,
-        personas: ["data_steward", "delivery_lead", "platform_admin"],
-      },
-      { href: "/exec", label: "Value", icon: TrendingUp, personas: ["executive", "platform_admin"] },
-    ],
-  },
-  {
-    title: "Govern",
-    items: [
-      { href: "/studio", label: "Studio", icon: PenSquare, personas: ["content_curator", "platform_admin"] },
-      { href: "/admin", label: "Admin", icon: Settings2, personas: ["platform_admin"] },
-    ],
-  },
-];
 
 /**
  * App shell: fixed vertical sidebar (brand + grouped nav), slim top bar with
- * the role switcher and sign-out, constrained content column.
+ * the role switcher and sign-out, constrained content column. Navigation is
+ * filtered by BOTH the active persona and the real role's permissions (see
+ * src/lib/nav.ts) so no visible item dead-ends on AccessDenied.
  */
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) return <>{children}</>;
 
-  const persona = (await getActivePersona()) ?? session.user.role;
-  const options = assumablePersonas(session.user.role);
+  const role = session.user.role;
+  const persona = (await getActivePersona()) ?? role;
+  const options = assumablePersonas(role);
 
   async function doSwitch(next: Role) {
     "use server";
@@ -110,10 +30,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     await signOut({ redirectTo: "/login" });
   }
 
-  const visibleGroups = NAV_GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter((item) => item.personas.includes(persona)),
-  })).filter((g) => g.items.length > 0);
+  const visibleGroups = visibleNavGroups(persona, role);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -151,22 +68,28 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="border-t border-slate-800 px-5 py-4">
           <p className="truncate text-sm font-medium text-slate-200">{session.user.name}</p>
-          <p className="truncate text-xs text-slate-500">{ROLE_LABELS[session.user.role]}</p>
+          <p className="truncate text-xs text-slate-500">{ROLE_LABELS[role]}</p>
         </div>
       </aside>
 
       {/* Content column */}
       <div className="md:pl-60">
         <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-          <div className="flex items-center justify-between gap-4 px-6 py-3">
-            {/* Brand shows in the top bar only when the sidebar is hidden (small screens) */}
-            <Link href={ROLE_HOMES[persona]} className="flex items-baseline gap-2 md:invisible">
-              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-400">
-                Artizent
-              </span>
-              <span className="font-serif text-lg text-white">Astra Velocity</span>
-            </Link>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <MobileNav persona={persona} role={role} userName={session.user.name ?? ""} />
+              {/* Brand shows in the top bar only when the sidebar is hidden (small screens) */}
+              <Link
+                href={ROLE_HOMES[persona]}
+                className="flex items-baseline gap-2 truncate md:invisible"
+              >
+                <span className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-400">
+                  Artizent
+                </span>
+                <span className="font-serif text-lg text-white">Astra Velocity</span>
+              </Link>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
               <RoleSwitcher active={persona} options={options} onSwitch={doSwitch} />
               <form action={doSignOut}>
                 <button
@@ -178,8 +101,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               </form>
             </div>
           </div>
+          {persona !== role && (
+            <div className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-200 sm:px-6">
+              Viewing as <span className="font-semibold">{ROLE_LABELS[persona]}</span> — your
+              permissions remain {ROLE_LABELS[role]}.
+            </div>
+          )}
         </header>
-        <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
       </div>
     </div>
   );

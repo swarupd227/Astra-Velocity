@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { KeyRound, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { toast } from "@/components/ui/toaster";
 import { ROLE_LABELS, ROLES } from "@/lib/roles";
 import { inviteUserAction, type InviteUserState } from "./actions";
 
@@ -15,6 +16,15 @@ const initialState: InviteUserState = { ok: false };
  */
 export function InviteUserForm() {
   const [state, formAction, pending] = useActionState(inviteUserAction, initialState);
+
+  // Toast when the action settles; the banner below carries the one-time password.
+  useEffect(() => {
+    if (state.ok && state.email) {
+      toast(`Account created for ${state.email} — logged to audit trail`, "success");
+    } else if (!state.ok && state.error) {
+      toast(state.error, "error");
+    }
+  }, [state]);
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
