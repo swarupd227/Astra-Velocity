@@ -30,8 +30,8 @@ export default async function ScenariosPage({
 
   return (
     <section>
-      <h1 className="font-display text-3xl text-white">Scenario Catalog</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <h1 className="font-display text-3xl text-slate-900 dark:text-white">Scenario Catalog</h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Ten engagement scenarios — the situations that bring clients to the table, and what winning looks like.
       </p>
 
@@ -42,8 +42,8 @@ export default async function ScenariosPage({
           aria-current={!activeSector ? "page" : undefined}
           className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
             !activeSector
-              ? "border-teal-500 bg-teal-500/15 text-teal-300"
-              : "border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 hover:text-white"
+              ? "border-teal-500 bg-teal-500/15 text-teal-700 dark:text-teal-300"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
           All sectors
@@ -57,8 +57,8 @@ export default async function ScenariosPage({
               aria-current={active ? "page" : undefined}
               className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
                 active
-                  ? "border-teal-500 bg-teal-500/15 text-teal-300"
-                  : "border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 hover:text-white"
+                  ? "border-teal-500 bg-teal-500/15 text-teal-700 dark:text-teal-300"
+                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {s.name}
@@ -77,13 +77,13 @@ export default async function ScenariosPage({
             <Card key={scenario.key} className="flex flex-col">
               <CardHeader>
                 <CardTitle className="font-display text-lg">{scenario.name}</CardTitle>
-                <p className="text-sm text-teal-400">{scenario.tagline}</p>
+                <p className="text-sm text-teal-600 dark:text-teal-400">{scenario.tagline}</p>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col gap-4">
-                <p className="text-sm text-slate-400">{scenario.stakes}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{scenario.stakes}</p>
 
                 {note && (
-                  <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-200">
+                  <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-800 dark:text-teal-200">
                     <span className="font-semibold">In {activeSector?.name}: </span>
                     {note}
                   </div>
@@ -97,8 +97,8 @@ export default async function ScenariosPage({
                       </h3>
                       <ul className="mt-1.5 space-y-1">
                         {scenario.painPoints.slice(0, 3).map((p) => (
-                          <li key={p} className="flex gap-2 text-xs text-slate-300">
-                            <span className="mt-0.5 shrink-0 text-amber-400">▸</span>
+                          <li key={p} className="flex gap-2 text-xs text-slate-600 dark:text-slate-300">
+                            <span className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400">▸</span>
                             {p}
                           </li>
                         ))}
@@ -110,8 +110,8 @@ export default async function ScenariosPage({
                       </h3>
                       <ul className="mt-1.5 space-y-1">
                         {scenario.successMetrics.slice(0, 3).map((m) => (
-                          <li key={m} className="flex gap-2 text-xs text-slate-300">
-                            <span className="mt-0.5 shrink-0 text-teal-400">✓</span>
+                          <li key={m} className="flex gap-2 text-xs text-slate-600 dark:text-slate-300">
+                            <span className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-400">✓</span>
                             {m}
                           </li>
                         ))}

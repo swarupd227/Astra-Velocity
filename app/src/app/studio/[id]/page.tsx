@@ -87,12 +87,12 @@ export default async function StudioItemPage({
       <header>
         <Link
           href="/studio"
-          className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+          className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" /> Studio
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-3xl text-white">{name}</h1>
+          <h1 className="font-display text-3xl text-slate-900 dark:text-white">{name}</h1>
           <Badge variant="outline">{KIND_LABELS[item.kind]}</Badge>
           <Badge variant={STATUS_VARIANT[item.status]}>{item.status}</Badge>
           <span className="text-sm text-slate-500 tabular-nums">v{item.version}</span>
@@ -103,7 +103,7 @@ export default async function StudioItemPage({
       </header>
 
       {error && ERROR_MESSAGES[error] && (
-        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
           {ERROR_MESSAGES[error]}
         </div>
       )}
@@ -111,9 +111,9 @@ export default async function StudioItemPage({
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
           {/* Payload */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-              <p className="text-sm font-semibold text-white">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
                 {item.status === "draft" ? "Draft payload — editable" : "Payload — read only"}
               </p>
               {item.status !== "draft" && (
@@ -132,7 +132,7 @@ export default async function StudioItemPage({
                   initialPayload={payloadJson}
                 />
               ) : (
-                <pre className="max-h-[560px] overflow-auto rounded-xl bg-slate-950/70 p-4 font-mono text-xs leading-relaxed text-slate-300">
+                <pre className="max-h-[560px] overflow-auto rounded-xl bg-slate-100 dark:bg-slate-950/70 p-4 font-mono text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                   {payloadJson}
                 </pre>
               )}
@@ -145,7 +145,7 @@ export default async function StudioItemPage({
               (existingDraft ? (
                 <Link
                   href={`/studio/${existingDraft.id}`}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500"
                 >
                   <FilePlus2 className="h-4 w-4" /> Open draft revision (v{existingDraft.version})
                 </Link>
@@ -188,7 +188,7 @@ export default async function StudioItemPage({
                   <input type="hidden" name="id" value={item.id} />
                   <ConfirmButton
                     variant="ghost"
-                    className="text-red-300"
+                    className="text-red-700 dark:text-red-300"
                     prompt="Discard this draft?"
                     confirmLabel="Discard"
                   >
@@ -200,7 +200,7 @@ export default async function StudioItemPage({
           </section>
 
           {item.status === "draft" && (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-400 dark:text-slate-600">
               Publishing marks this version published and deprecates the currently-published
               version of {item.kind}/{item.key} in a single transaction. Both steps are audited.
             </p>
@@ -209,8 +209,8 @@ export default async function StudioItemPage({
 
         {/* Metadata + versions */}
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-sm font-semibold text-white">Metadata</p>
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Metadata</p>
             <dl className="mt-3 space-y-2 text-xs">
               <MetaRow label="Created by" value={item.createdBy} mono />
               <MetaRow label="Created" value={dateFmt.format(item.createdAt)} />
@@ -219,25 +219,25 @@ export default async function StudioItemPage({
             </dl>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60">
-            <p className="border-b border-slate-800 px-4 py-3 text-sm font-semibold text-white">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+            <p className="border-b border-slate-200 dark:border-slate-800 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white">
               Versions of {item.key}
             </p>
-            <ul className="divide-y divide-slate-800/60">
+            <ul className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {versions.map((v) => (
                 <li key={v.id}>
                   <Link
                     href={`/studio/${v.id}`}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-slate-800/40 ${
-                      v.id === item.id ? "bg-slate-800/40" : ""
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-slate-200/40 dark:hover:bg-slate-800/40 ${
+                      v.id === item.id ? "bg-slate-200/60 dark:bg-slate-800/40" : ""
                     }`}
                   >
-                    <span className="font-mono text-slate-300 tabular-nums">v{v.version}</span>
+                    <span className="font-mono text-slate-600 dark:text-slate-300 tabular-nums">v{v.version}</span>
                     <Badge variant={STATUS_VARIANT[v.status]}>{v.status}</Badge>
                     <span className="ml-auto text-[11px] text-slate-500 tabular-nums">
                       {dateFmt.format(v.updatedAt)}
                     </span>
-                    {v.id === item.id && <span className="text-[11px] text-teal-300">viewing</span>}
+                    {v.id === item.id && <span className="text-[11px] text-teal-700 dark:text-teal-300">viewing</span>}
                   </Link>
                 </li>
               ))}
@@ -264,7 +264,7 @@ function MetaRow({
     <div className="flex items-baseline justify-between gap-3">
       <dt className="text-slate-500">{label}</dt>
       <dd
-        className={`truncate text-right text-slate-300 ${mono ? "font-mono" : ""}`}
+        className={`truncate text-right text-slate-600 dark:text-slate-300 ${mono ? "font-mono" : ""}`}
         title={title}
       >
         {value}

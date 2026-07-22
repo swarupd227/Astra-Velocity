@@ -71,7 +71,9 @@ export function BurnUp({
   const h = hover !== null ? points[hover] : null;
 
   return (
-    <div className="relative">
+    // Chart internals are dark-optimized (validated palette) — in light theme
+    // the chart keeps its own dark panel; in dark theme the panel disappears.
+    <div className="relative rounded-xl bg-[#0d1424] p-3 dark:bg-transparent dark:p-0">
       <svg
         ref={svgRef}
         viewBox={`0 0 ${width} ${height}`}

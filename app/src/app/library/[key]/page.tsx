@@ -31,30 +31,30 @@ function AgentContract({ element }: { element: Element }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-teal-500/30 bg-slate-950/60 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-400">Drafts</h3>
-            <p className="mt-2 text-sm text-slate-300">{meta.drafts}</p>
+          <div className="rounded-xl border border-teal-500/30 bg-slate-100 dark:bg-slate-950/60 p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">Drafts</h3>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{meta.drafts}</p>
           </div>
-          <div className="rounded-xl border border-teal-500/30 bg-slate-950/60 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-400">
+          <div className="rounded-xl border border-teal-500/30 bg-slate-100 dark:bg-slate-950/60 p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
               You decide
             </h3>
-            <p className="mt-2 text-sm text-slate-300">{meta.humanDecides}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{meta.humanDecides}</p>
           </div>
-          <div className="rounded-xl border border-teal-500/30 bg-slate-950/60 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-400">
+          <div className="rounded-xl border border-teal-500/30 bg-slate-100 dark:bg-slate-950/60 p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
               Measured by
             </h3>
-            <p className="mt-2 text-sm text-slate-300">{meta.leverageMetric}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{meta.leverageMetric}</p>
           </div>
         </div>
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-400">Guardrails</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">Guardrails</h3>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {meta.guardrails.map((g) => (
               <span
                 key={g}
-                className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300"
+                className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-700 dark:text-amber-300"
               >
                 {g}
               </span>
@@ -63,7 +63,7 @@ function AgentContract({ element }: { element: Element }) {
         </div>
         <Link
           href="/agents"
-          className="inline-flex items-center gap-1.5 border-t border-slate-800 pt-3 text-sm font-medium text-teal-300 transition hover:text-teal-200"
+          className="inline-flex items-center gap-1.5 border-t border-slate-200 dark:border-slate-800 pt-3 text-sm font-medium text-teal-700 dark:text-teal-300 transition hover:text-teal-600 dark:hover:text-teal-200"
         >
           See this contract live in the agent workbench <ArrowRight className="h-4 w-4" />
         </Link>
@@ -107,13 +107,13 @@ export default async function ElementDetailPage({
     <div className="space-y-6">
       <Link
         href="/library"
-        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" /> Pack Library
       </Link>
 
       {/* ---------- Header ---------- */}
-      <header className="border-b border-slate-800 pb-6">
+      <header className="border-b border-slate-200 dark:border-slate-800 pb-6">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={isAgent ? "accent" : "default"}>
             {isAgent ? "Agent co-worker" : TYPE_LABELS[element.type]}
@@ -121,15 +121,15 @@ export default async function ElementDetailPage({
           {pack && (
             <>
               <Badge variant="accent">{pack.code}</Badge>
-              <span className="text-sm text-slate-400">{pack.name}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{pack.name}</span>
             </>
           )}
           {element.effortSavedStewardWeeks !== undefined && (
             <Badge variant="success">saves ~{element.effortSavedStewardWeeks} steward-weeks</Badge>
           )}
         </div>
-        <h1 className="mt-3 font-display text-3xl text-white">{element.name}</h1>
-        <p className="mt-1 max-w-3xl text-slate-400">{element.pitch}</p>
+        <h1 className="mt-3 font-display text-3xl text-slate-900 dark:text-white">{element.name}</h1>
+        <p className="mt-1 max-w-3xl text-slate-500 dark:text-slate-400">{element.pitch}</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -148,7 +148,7 @@ export default async function ElementDetailPage({
             </Card>
           ) : (
             !(isAgent && element.agentMeta) && (
-              <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-6 text-sm text-slate-500">
                 Working asset ships with the pack — the starter sample for this element is not
                 published in the demo library yet.
               </div>
@@ -160,9 +160,9 @@ export default async function ElementDetailPage({
               <CardTitle className="text-sm">About this element</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm leading-relaxed text-slate-300">{element.description}</p>
-              <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-sm text-slate-400">
-                <span className="font-semibold text-teal-300">So what: </span>
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{element.description}</p>
+              <p className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-3 text-sm text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-teal-700 dark:text-teal-300">So what: </span>
                 {element.soWhat}
               </p>
               <p className="text-xs text-slate-500">Audience: {element.audience.join(" · ")}</p>
@@ -182,10 +182,10 @@ export default async function ElementDetailPage({
                   <Link
                     key={bp.key}
                     href="/practices"
-                    className="block rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-teal-500/50"
+                    className="block rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-3 transition hover:border-teal-500/50"
                   >
-                    <p className="text-sm font-semibold text-white">{bp.title}</p>
-                    <p className="mt-1 text-xs text-slate-400">{bp.statement}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{bp.title}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{bp.statement}</p>
                   </Link>
                 ))}
               </CardContent>
@@ -200,7 +200,7 @@ export default async function ElementDetailPage({
               <CardContent className="space-y-2.5">
                 {linkedObligations.map((o) => (
                   <div key={o.key} className="flex items-start justify-between gap-2">
-                    <span className="text-sm text-slate-300">{o.name}</span>
+                    <span className="text-sm text-slate-600 dark:text-slate-300">{o.name}</span>
                     <Badge variant="outline" className="shrink-0">
                       {o.authority}
                     </Badge>
@@ -218,7 +218,7 @@ export default async function ElementDetailPage({
               <CardContent className="space-y-2.5">
                 {linkedKpis.map((kpi) => (
                   <div key={kpi.key}>
-                    <p className="text-sm text-slate-300">{kpi.name}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">{kpi.name}</p>
                     <p className="mt-0.5 font-mono text-[11px] text-slate-500">{kpi.formula}</p>
                   </div>
                 ))}
@@ -239,13 +239,13 @@ export default async function ElementDetailPage({
                 ))}
               </div>
               {element.toolTags.length > 0 && (
-                <div className="border-t border-slate-800 pt-3">
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Works with
                   </p>
                   <ul className="mt-1.5 space-y-1">
                     {element.toolTags.map((t) => (
-                      <li key={t} className="text-xs text-slate-400">
+                      <li key={t} className="text-xs text-slate-500 dark:text-slate-400">
                         {t}
                       </li>
                     ))}

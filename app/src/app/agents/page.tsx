@@ -6,7 +6,6 @@ import { db } from "@/db/client";
 import { agentSuggestions } from "@/db/schema";
 import { contentStore } from "@/content/store";
 import { Badge } from "@/components/ui/badge";
-import { CHART } from "@/components/viz/tokens";
 import { getWorkspaceForUser } from "@/sim/context";
 
 export const metadata = { title: "Agent Workbench — Astra Velocity" };
@@ -55,22 +54,22 @@ export default async function AgentsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-3xl text-white">Agent Workbench</h1>
-        <p className="mt-1 text-slate-400">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">Agent Workbench</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           Six agent co-workers with defined drafts, human decision points, and measured leverage.
         </p>
       </header>
 
       {/* explainer strip */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-teal-500/30 bg-teal-500/5 px-5 py-3 text-sm text-slate-300">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-teal-500/30 bg-teal-500/5 px-5 py-3 text-sm text-slate-600 dark:text-slate-300">
         <span className="flex items-center gap-2">
-          <Bot className="h-4 w-4 text-teal-400" /> Agents draft
+          <Bot className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Agents draft
         </span>
         <span className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-teal-400" /> Stewards decide
+          <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Stewards decide
         </span>
         <span className="flex items-center gap-2">
-          <ScrollText className="h-4 w-4 text-teal-400" /> Everything is logged
+          <ScrollText className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Everything is logged
         </span>
         <span className="ml-auto text-xs text-slate-500">
           Acceptance below {Math.round(BENCH_ACCEPTANCE_THRESHOLD * 100)}% over ≥
@@ -89,26 +88,32 @@ export default async function AgentsPage() {
             acceptance < BENCH_ACCEPTANCE_THRESHOLD;
 
           return (
-            <article key={agent.key} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+            <article key={agent.key} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-                    <Bot className="h-4 w-4 text-teal-400" /> {agent.name}
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+                    <Bot className="h-4 w-4 text-teal-600 dark:text-teal-400" /> {agent.name}
                   </h2>
-                  <p className="mt-1 text-sm text-slate-400">{agent.pitch}</p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{agent.pitch}</p>
                 </div>
                 {/* status chip — icon + label, color never alone */}
                 {benched ? (
                   <span
                     className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{ backgroundColor: `${CHART.status.serious}26`, color: CHART.status.serious }}
+                    style={{
+                      backgroundColor: "color-mix(in srgb, var(--status-serious) 15%, transparent)",
+                      color: "var(--status-serious)",
+                    }}
                   >
                     <CirclePause className="h-3.5 w-3.5" /> benched — draft-only
                   </span>
                 ) : (
                   <span
                     className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{ backgroundColor: `${CHART.status.good}26`, color: CHART.status.good }}
+                    style={{
+                      backgroundColor: "color-mix(in srgb, var(--status-good) 15%, transparent)",
+                      color: "var(--status-good)",
+                    }}
                   >
                     <CircleCheck className="h-3.5 w-3.5" /> active
                   </span>
@@ -133,19 +138,19 @@ export default async function AgentsPage() {
                 </dl>
               )}
 
-              <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-800 pt-3 text-center">
+              <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-center">
                 <div>
-                  <p className="text-lg font-semibold text-white tabular-nums">{s.total}</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white tabular-nums">{s.total}</p>
                   <p className="text-xs text-slate-500">suggestions</p>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-white tabular-nums">
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white tabular-nums">
                     {acceptance === null ? "—" : `${Math.round(acceptance * 100)}%`}
                   </p>
                   <p className="text-xs text-slate-500">acceptance ({decided} decided)</p>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-white tabular-nums">{s.pending}</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white tabular-nums">{s.pending}</p>
                   <p className="text-xs text-slate-500">pending review</p>
                 </div>
               </div>
@@ -154,7 +159,7 @@ export default async function AgentsPage() {
         })}
       </div>
 
-      <p className="text-xs text-slate-600">
+      <p className="text-xs text-slate-400 dark:text-slate-600">
         Operational telemetry computed from this workspace&apos;s suggestion queue. Simulated
         telemetry — wire to live governance tooling via the API.
       </p>
@@ -166,7 +171,7 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-slate-300">{value}</dd>
+      <dd className="mt-0.5 text-slate-600 dark:text-slate-300">{value}</dd>
     </div>
   );
 }

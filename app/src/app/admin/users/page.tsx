@@ -54,29 +54,29 @@ export default async function AdminUsersPage({
       <header>
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-300"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 dark:hover:text-teal-300"
         >
           <ArrowLeft className="h-3 w-3" /> Admin
         </Link>
-        <h1 className="mt-1 font-display text-3xl text-white">Users & Roles</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="mt-1 font-display text-3xl text-slate-900 dark:text-white">Users & Roles</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Assign platform roles and manage account status. Every change is written to the audit
           trail; role changes take effect at the user&apos;s next sign-in.
         </p>
       </header>
 
       {error && ERROR_MESSAGES[error] && (
-        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
           {ERROR_MESSAGES[error]}
         </div>
       )}
 
       <InviteUserForm />
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Role</th>
@@ -89,16 +89,16 @@ export default async function AdminUsersPage({
             {rows.map((u) => {
               const isSelf = u.id === session.user.id;
               return (
-                <tr key={u.id} className="border-b border-slate-800/60 last:border-0">
-                  <td className="px-4 py-3 text-white">
+                <tr key={u.id} className="border-b border-slate-200/70 dark:border-slate-800/60 last:border-0">
+                  <td className="px-4 py-3 text-slate-900 dark:text-white">
                     {u.name}
                     {isSelf && (
-                      <span className="ml-2 rounded-full bg-slate-800 px-2 py-0.5 text-[11px] text-slate-400">
+                      <span className="ml-2 rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                         you
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">{u.email}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{u.email}</td>
                   <td className="px-4 py-3">
                     <ActionForm
                       action={updateUserRoleAction}
@@ -131,7 +131,7 @@ export default async function AdminUsersPage({
                       <Badge variant="danger">Deactivated</Badge>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-400 tabular-nums">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">
                     {dateFmt.format(u.createdAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -150,7 +150,7 @@ export default async function AdminUsersPage({
                         <ConfirmButton
                           variant="ghost"
                           size="sm"
-                          className="text-red-300"
+                          className="text-red-700 dark:text-red-300"
                           prompt="Deactivate this account?"
                           confirmLabel="Deactivate"
                           disabled={isSelf}
@@ -159,7 +159,7 @@ export default async function AdminUsersPage({
                           Deactivate
                         </ConfirmButton>
                       ) : (
-                        <SubmitButton variant="ghost" size="sm" className="text-teal-300">
+                        <SubmitButton variant="ghost" size="sm" className="text-teal-700 dark:text-teal-300">
                           Reactivate
                         </SubmitButton>
                       )}
@@ -172,7 +172,7 @@ export default async function AdminUsersPage({
         </table>
       </div>
 
-      <p className="text-xs text-slate-600">
+      <p className="text-xs text-slate-400 dark:text-slate-600">
         Deactivated accounts cannot sign in; their audit history is retained.
       </p>
     </div>

@@ -28,23 +28,23 @@ export function InviteUserForm() {
   }, [state]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-      <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-        <UserPlus className="h-4 w-4 text-teal-400" /> Invite a user
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
+      <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+        <UserPlus className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Invite a user
       </h2>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Creates the account with a generated temporary password. Share it through a secure channel
         and ask the user to change it at first sign-in.
       </p>
 
       {state.ok && state.tempPassword && (
         <div className="mt-3 rounded-xl border border-teal-500/40 bg-teal-500/10 p-4 text-sm">
-          <p className="flex items-center gap-2 font-semibold text-teal-300">
+          <p className="flex items-center gap-2 font-semibold text-teal-700 dark:text-teal-300">
             <KeyRound className="h-4 w-4" /> Account created for {state.email}
           </p>
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-slate-300">
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-slate-600 dark:text-slate-300">
             <span>Temporary password (shown once, not retrievable later):</span>
-            <code className="rounded bg-slate-950 px-2 py-0.5 font-mono text-teal-200">
+            <code className="rounded bg-slate-50 dark:bg-slate-950 px-2 py-0.5 font-mono text-teal-800 dark:text-teal-200">
               {state.tempPassword}
             </code>
             <CopyButton text={state.tempPassword} ariaLabel="Copy temporary password" />
@@ -52,7 +52,7 @@ export function InviteUserForm() {
         </div>
       )}
       {!state.ok && state.error && (
-        <div className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+        <div className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
           {state.error}
         </div>
       )}

@@ -130,11 +130,11 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
         type="button"
         onClick={openPalette}
         aria-label="Search the platform (Ctrl+K)"
-        className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-400 transition hover:border-slate-500 hover:text-slate-200 md:px-3 md:py-1.5"
+        className="flex items-center gap-2 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm text-slate-500 dark:text-slate-400 transition hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-700 dark:hover:text-slate-200 md:px-3 md:py-1.5"
       >
         <Search className="h-4 w-4" aria-hidden />
         <span className="hidden md:inline">Search</span>
-        <kbd className="hidden rounded border border-slate-700 bg-slate-800/80 px-1.5 py-0.5 font-sans text-[10px] font-medium text-slate-400 md:inline">
+        <kbd className="hidden rounded border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/80 px-1.5 py-0.5 font-sans text-[10px] font-medium text-slate-500 dark:text-slate-400 md:inline">
           ⌘K
         </kbd>
       </button>
@@ -142,7 +142,7 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
       {open && (
         <div className="fixed inset-0 z-[80]">
           <div
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/30 dark:bg-slate-950/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
             aria-hidden
           />
@@ -150,9 +150,9 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
             role="dialog"
             aria-modal="true"
             aria-label="Search"
-            className="toast-in absolute left-1/2 top-[12vh] w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-slate-950"
+            className="toast-in absolute left-1/2 top-[12vh] w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-300 dark:shadow-slate-950"
           >
-            <div className="flex items-center gap-2.5 border-b border-slate-800 px-4">
+            <div className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 px-4">
               <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
               <input
                 ref={inputRef}
@@ -167,13 +167,13 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
                 aria-expanded="true"
                 aria-controls="command-palette-results"
                 aria-activedescendant={results[active] ? `palette-option-${active}` : undefined}
-                className="w-full bg-transparent py-3.5 text-sm text-slate-100 outline-none placeholder:text-slate-500"
+                className="w-full bg-transparent py-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
               <button
                 type="button"
                 aria-label="Close search"
                 onClick={() => setOpen(false)}
-                className="rounded p-1 text-slate-500 transition hover:text-slate-300"
+                className="rounded p-1 text-slate-500 transition hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
@@ -193,7 +193,7 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
               ) : (
                 grouped.map((g) => (
                   <div key={g.group}>
-                    <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                    <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-600">
                       {g.group}
                     </p>
                     {g.items.map(({ row, index }) => (
@@ -208,8 +208,8 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
                         onClick={() => go(row.href)}
                         className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition ${
                           index === active
-                            ? "bg-slate-800 text-white"
-                            : "text-slate-300 hover:bg-slate-800/50"
+                            ? "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
                         }`}
                       >
                         <span className="min-w-0">
@@ -233,7 +233,7 @@ export function CommandPalette({ rows }: { rows: SearchRow[] }) {
               )}
             </div>
 
-            <div className="flex items-center gap-4 border-t border-slate-800 px-4 py-2 text-[11px] text-slate-600">
+            <div className="flex items-center gap-4 border-t border-slate-200 dark:border-slate-800 px-4 py-2 text-[11px] text-slate-400 dark:text-slate-600">
               <span>↑↓ navigate</span>
               <span>↵ open</span>
               <span>esc close</span>

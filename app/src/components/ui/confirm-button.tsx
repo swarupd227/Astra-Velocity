@@ -60,7 +60,7 @@ export function ConfirmButton({
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium text-amber-300">{prompt}</span>
+      <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{prompt}</span>
       <Button
         type={type}
         variant="danger"

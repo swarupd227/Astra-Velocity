@@ -17,8 +17,8 @@ export default async function LibraryPage() {
 
   return (
     <section>
-      <h1 className="font-display text-3xl text-white">Velocity Pack Library</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <h1 className="font-display text-3xl text-slate-900 dark:text-white">Velocity Pack Library</h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Every reusable element across the 22 Velocity Packs — standards, templates, rule libraries, and agent co-workers. Open a card to work with the asset itself.
       </p>
       <div className="mt-6">

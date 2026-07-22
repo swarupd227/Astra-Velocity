@@ -37,14 +37,14 @@ export default async function ValueDashboardPage() {
     <div className="space-y-6">
       <Link
         href="/dashboards"
-        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" /> Dashboards
       </Link>
 
       <header>
-        <h1 className="font-display text-3xl text-white">Executive Value</h1>
-        <p className="mt-1 text-slate-400">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">Executive Value</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           So what: what has governance made measurably cheaper, faster, or safer — in terms the
           CFO can retell?
         </p>
@@ -52,19 +52,19 @@ export default async function ValueDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <HeroTile
-          icon={<ShieldCheck className="h-5 w-5 text-teal-400" />}
+          icon={<ShieldCheck className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           value={String(value.incidentsAvoided)}
           label="Incidents avoided on priority reports"
           detail="Breaches caught before a filed or executive number shipped"
         />
         <HeroTile
-          icon={<Clock3 className="h-5 w-5 text-teal-400" />}
+          icon={<Clock3 className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           value={`−${cycleDelta}d`}
           label="Access-provisioning cycle time"
           detail={`${value.accessCycleDaysStart}d → ${value.accessCycleDaysNow}d since Q1-26`}
         />
         <HeroTile
-          icon={<TrendingDown className="h-5 w-5 text-teal-400" />}
+          icon={<TrendingDown className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           value={String(value.stewardWeeksSaved)}
           label="Steward-weeks saved"
           detail={
@@ -74,7 +74,7 @@ export default async function ValueDashboardPage() {
           }
         />
         <HeroTile
-          icon={<Sparkles className="h-5 w-5 text-teal-400" />}
+          icon={<Sparkles className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           value={`${Math.round(acceptanceRate * 100)}%`}
           label="Agent suggestion acceptance"
           detail="Share of agent drafts stewards approve or approve-with-edits"
@@ -99,7 +99,7 @@ export default async function ValueDashboardPage() {
         </CardContent>
       </Card>
 
-      <p className="rounded-2xl border border-teal-500/30 bg-teal-500/5 px-5 py-3 text-sm text-slate-300">
+      <p className="rounded-2xl border border-teal-500/30 bg-teal-500/5 px-5 py-3 text-sm text-slate-600 dark:text-slate-300">
         Value narrative: agents draft at machine speed, stewards decide at human judgment, and the
         gap between the two curves — {value.stewardWeeksSaved} steward-weeks so far — is what
         funds the next wave of governed products without new headcount.
@@ -122,10 +122,10 @@ function HeroTile({
   detail: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
       {icon}
-      <p className="mt-3 text-3xl font-semibold text-white tabular-nums">{value}</p>
-      <p className="mt-1 text-sm font-medium text-slate-300">{label}</p>
+      <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white tabular-nums">{value}</p>
+      <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">{label}</p>
       <p className="mt-1 text-xs text-slate-500">{detail}</p>
     </div>
   );

@@ -110,17 +110,17 @@ export function LibraryBrowser({
       </p>
 
       {groups.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center text-sm text-slate-400">
+        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-10 text-center text-sm text-slate-500 dark:text-slate-400">
           No elements match these filters.
         </div>
       )}
 
       {groups.map(({ pack, items }) => (
         <section key={pack.key} className="mt-10">
-          <div className="flex flex-wrap items-baseline gap-3 border-b border-slate-800 pb-3">
+          <div className="flex flex-wrap items-baseline gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
             <Badge variant="accent">{pack.code}</Badge>
-            <h2 className="font-display text-xl text-white">{pack.name}</h2>
-            <p className="text-sm text-slate-400">{pack.summary}</p>
+            <h2 className="font-display text-xl text-slate-900 dark:text-white">{pack.name}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{pack.summary}</p>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {items.map((el) => (

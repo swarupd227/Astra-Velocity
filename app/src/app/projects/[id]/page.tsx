@@ -37,8 +37,8 @@ function typeLabel(type: string): string {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-xl text-white">
-      <span className="mr-2 text-teal-400">/</span>
+    <h2 className="font-display text-xl text-slate-900 dark:text-white">
+      <span className="mr-2 text-teal-600 dark:text-teal-400">/</span>
       {children}
     </h2>
   );
@@ -93,20 +93,20 @@ export default async function ProjectBlueprintPage({
       <style>{PRINT_CSS}</style>
 
       {/* ---------- Header ---------- */}
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-800 pb-6">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
           <Link
             href="/projects"
-            className="no-print mb-2 inline-flex items-center gap-1 text-sm text-slate-400 hover:text-white"
+            className="no-print mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> All projects
           </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600 dark:text-teal-400">
             Project Blueprint
           </p>
-          <h1 className="mt-1 font-display text-3xl text-white">{project.name}</h1>
-          <p className="mt-2 text-slate-400">
-            {sector.name} <span className="text-slate-600">×</span> {scenario.name}
+          <h1 className="mt-1 font-display text-3xl text-slate-900 dark:text-white">{project.name}</h1>
+          <p className="mt-2 text-slate-500 dark:text-slate-400">
+            {sector.name} <span className="text-slate-400 dark:text-slate-600">×</span> {scenario.name}
             {project.clientLabel && (
               <>
                 {" "}
@@ -130,7 +130,7 @@ export default async function ProjectBlueprintPage({
       <section className="space-y-3">
         <SectionTitle>Executive summary</SectionTitle>
         {blueprint.executiveSummary.map((paragraph) => (
-          <p key={paragraph.slice(0, 40)} className="max-w-4xl leading-relaxed text-slate-300">
+          <p key={paragraph.slice(0, 40)} className="max-w-4xl leading-relaxed text-slate-600 dark:text-slate-300">
             {paragraph}
           </p>
         ))}
@@ -139,11 +139,11 @@ export default async function ProjectBlueprintPage({
       {/* ---------- Phase timeline ---------- */}
       <section className="space-y-4">
         <SectionTitle>Phase timeline · 26 weeks</SectionTitle>
-        <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="space-y-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
           {blueprint.phases.map((phase) => (
             <div key={phase.key} className="grid items-center gap-3 md:grid-cols-[280px_1fr_90px]">
-              <span className="truncate text-sm text-slate-300">{phase.name}</span>
-              <div className="relative h-4 rounded-sm bg-slate-800/70">
+              <span className="truncate text-sm text-slate-600 dark:text-slate-300">{phase.name}</span>
+              <div className="relative h-4 rounded-sm bg-slate-200 dark:bg-slate-800/70">
                 <div
                   className="print-bar absolute top-0 h-full rounded-sm bg-teal-500/80"
                   style={{
@@ -159,8 +159,8 @@ export default async function ProjectBlueprintPage({
           ))}
           {blueprint.crossCuttingEnablement.elementNames.length > 0 && (
             <div className="grid items-center gap-3 md:grid-cols-[280px_1fr_90px]">
-              <span className="truncate text-sm text-slate-400">Cross-cutting enablement</span>
-              <div className="relative h-4 rounded-sm bg-slate-800/70">
+              <span className="truncate text-sm text-slate-500 dark:text-slate-400">Cross-cutting enablement</span>
+              <div className="relative h-4 rounded-sm bg-slate-200 dark:bg-slate-800/70">
                 <div className="print-bar absolute top-0 h-full w-full rounded-sm bg-amber-500/50" />
               </div>
               <span className="text-right text-xs tabular-nums text-slate-500">Weeks 1–26</span>
@@ -173,10 +173,10 @@ export default async function ProjectBlueprintPage({
             <Card key={phase.key}>
               <CardHeader>
                 <CardTitle>{phase.name}</CardTitle>
-                <p className="text-xs text-teal-300">{phase.window}</p>
+                <p className="text-xs text-teal-700 dark:text-teal-300">{phase.window}</p>
               </CardHeader>
               <CardContent className="space-y-3">
-                <ul className="list-disc space-y-1 pl-4 text-sm text-slate-400">
+                <ul className="list-disc space-y-1 pl-4 text-sm text-slate-500 dark:text-slate-400">
                   {phase.objectives.map((objective) => (
                     <li key={objective}>{objective}</li>
                   ))}
@@ -206,7 +206,7 @@ export default async function ProjectBlueprintPage({
               <CardTitle>Cross-cutting enablement</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-slate-400">{blueprint.crossCuttingEnablement.note}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{blueprint.crossCuttingEnablement.note}</p>
               <div className="flex flex-wrap gap-1.5">
                 {blueprint.crossCuttingEnablement.elementNames.map((name) => (
                   <Badge key={name} variant="highlight">
@@ -225,22 +225,22 @@ export default async function ProjectBlueprintPage({
         <div className="space-y-4">
           {blueprint.manifest.map((group) => (
             <div key={group.capability}>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {group.label}
               </h3>
               <div className="grid gap-3 md:grid-cols-2">
                 {group.entries.map((entry) => (
                   <div
                     key={entry.elementKey}
-                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                    className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="font-semibold text-white">{entry.elementName}</h4>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">{entry.elementName}</h4>
                       <Badge variant="outline">{typeLabel(entry.elementType)}</Badge>
                     </div>
-                    <p className="mt-1 text-sm text-slate-400">{entry.soWhat}</p>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{entry.soWhat}</p>
                     {entry.practiceTitle && (
-                      <p className="mt-2 text-xs text-teal-300">
+                      <p className="mt-2 text-xs text-teal-700 dark:text-teal-300">
                         Operationalizes: &ldquo;{entry.practiceTitle}&rdquo;
                       </p>
                     )}
@@ -260,13 +260,13 @@ export default async function ProjectBlueprintPage({
             {blueprint.obligationsAddressed.map((obligation) => (
               <div
                 key={obligation.key}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="font-semibold text-white">{obligation.name}</h4>
+                  <h4 className="font-semibold text-slate-900 dark:text-white">{obligation.name}</h4>
                   <Badge variant="accent">{obligation.authority}</Badge>
                 </div>
-                <p className="mt-1 text-sm text-slate-400">{obligation.summary}</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{obligation.summary}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   Evidence: {obligation.evidenceExpectations[0]}
                 </p>
@@ -283,7 +283,7 @@ export default async function ProjectBlueprintPage({
           {blueprint.successMetrics.map((metric) => (
             <li
               key={metric}
-              className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 text-sm text-slate-300"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300"
             >
               {metric}
             </li>
@@ -294,17 +294,17 @@ export default async function ProjectBlueprintPage({
       {/* ---------- Pod model & train-the-trainer ---------- */}
       <section className="space-y-4">
         <SectionTitle>Pod model &amp; train-the-trainer</SectionTitle>
-        <p className="max-w-3xl text-sm text-slate-400">{blueprint.podModel.summary}</p>
+        <p className="max-w-3xl text-sm text-slate-500 dark:text-slate-400">{blueprint.podModel.summary}</p>
         <div className="grid gap-3 md:grid-cols-2">
           {blueprint.podModel.pairs.map((pair) => (
             <div
               key={pair.consultingRole}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
             >
-              <p className="font-semibold text-white">
-                {pair.consultingRole} <span className="text-teal-400">⇄</span> {pair.clientRole}
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {pair.consultingRole} <span className="text-teal-600 dark:text-teal-400">⇄</span> {pair.clientRole}
               </p>
-              <p className="mt-1 text-sm text-slate-400">{pair.focus}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{pair.focus}</p>
             </div>
           ))}
         </div>
@@ -312,18 +312,18 @@ export default async function ProjectBlueprintPage({
           {blueprint.trainTheTrainer.waves.map((wave) => (
             <div
               key={wave.wave}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
             >
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-white">{wave.wave}</h4>
+                <h4 className="font-semibold text-slate-900 dark:text-white">{wave.wave}</h4>
                 <Badge variant="accent">{wave.namedTraineeSlots} named trainee slots</Badge>
               </div>
-              <p className="mt-1 text-sm text-slate-400">{wave.focus}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{wave.focus}</p>
             </div>
           ))}
         </div>
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-          <p className="text-sm text-amber-200">
+          <p className="text-sm text-amber-800 dark:text-amber-200">
             {blueprint.trainTheTrainer.readinessDemonstration}
           </p>
         </div>
@@ -336,7 +336,7 @@ export default async function ProjectBlueprintPage({
           {blueprint.risks.map((risk) => (
             <li
               key={risk}
-              className="rounded-lg border border-slate-800 bg-slate-900/60 border-l-2 border-l-amber-400/70 px-4 py-2.5 text-sm text-slate-300"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 border-l-2 border-l-amber-400/70 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300"
             >
               {risk}
             </li>
@@ -351,14 +351,14 @@ export default async function ProjectBlueprintPage({
           {blueprint.dashboards.map((dashboard) => (
             <div
               key={dashboard.key}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <h4 className="font-semibold text-white">{dashboard.name}</h4>
+                <h4 className="font-semibold text-slate-900 dark:text-white">{dashboard.name}</h4>
                 <Badge variant="outline">{dashboard.category}</Badge>
                 {dashboard.builtIn && <Badge variant="accent">live in-app</Badge>}
               </div>
-              <p className="mt-1 text-sm text-slate-400">{dashboard.questionsAnswered[0]}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{dashboard.questionsAnswered[0]}</p>
               <p className="mt-2 text-xs text-slate-500">
                 Audience: {dashboard.audience.join(", ")}
               </p>

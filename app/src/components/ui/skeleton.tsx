@@ -3,12 +3,12 @@ import { cn } from "@/lib/cn";
 /**
  * Shared loading-skeleton primitives. Every route's loading.tsx composes these
  * so streams-in states share one pulse rhythm and the dark slate/teal surface
- * language (rounded-2xl, border-slate-800, bg-slate-900/60).
+ * language (rounded-2xl, border-slate-200 dark:border-slate-800, bg-white dark:bg-slate-900/60).
  */
 
 /** Base pulsing bar — size it with width/height utilities. */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn("animate-pulse rounded-md bg-slate-800/70", className)} />;
+  return <div aria-hidden className={cn("animate-pulse rounded-md bg-slate-200 dark:bg-slate-800/70", className)} />;
 }
 
 /** Page header: optional back-link stub, display title, subtitle line. */
@@ -33,7 +33,7 @@ export function SkeletonStats({
   return (
     <div className={cn("grid grid-cols-2 gap-3 md:grid-cols-4", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
+        <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-4 py-3">
           <Skeleton className="h-6 w-16" />
           <Skeleton className="mt-2 h-3 w-24 max-w-full" />
         </div>
@@ -51,7 +51,7 @@ export function SkeletonCard({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-2xl border border-slate-800 bg-slate-900/60 p-5", className)}>
+    <div className={cn("rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5", className)}>
       <Skeleton className="h-4 w-2/5" />
       <div className="mt-3 space-y-2">
         {Array.from({ length: lines }).map((_, i) => (
@@ -75,14 +75,14 @@ export function SkeletonTable({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60",
+        "overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60",
         className,
       )}
     >
-      <div className="border-b border-slate-800 px-4 py-3">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-4 py-3">
         <Skeleton className="h-3 w-48 max-w-full" />
       </div>
-      <div className="divide-y divide-slate-800/60">
+      <div className="divide-y divide-slate-200 dark:divide-slate-800/60">
         {Array.from({ length: rows }).map((_, r) => (
           <div key={r} className="flex items-center gap-4 px-4 py-3.5">
             {Array.from({ length: cols }).map((_, c) => (

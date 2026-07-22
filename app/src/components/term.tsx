@@ -89,9 +89,9 @@ export function Term({ k, children }: { k: TermKey; children: React.ReactNode })
       <span
         role="tooltip"
         id={id}
-        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 block w-72 max-w-[80vw] rounded-xl border border-slate-700 bg-slate-900 p-3 text-left font-sans text-xs font-normal normal-case leading-relaxed tracking-normal text-slate-300 opacity-0 shadow-xl shadow-slate-950/60 transition-opacity duration-150 group-focus-within/term:visible group-focus-within/term:opacity-100 group-hover/term:visible group-hover/term:opacity-100"
+        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 block w-72 max-w-[80vw] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-left font-sans text-xs font-normal normal-case leading-relaxed tracking-normal text-slate-600 dark:text-slate-300 opacity-0 shadow-xl shadow-slate-300/60 dark:shadow-slate-950/60 transition-opacity duration-150 group-focus-within/term:visible group-focus-within/term:opacity-100 group-hover/term:visible group-hover/term:opacity-100"
       >
-        <span className="mb-1 block font-semibold text-teal-300">{def.term}</span>
+        <span className="mb-1 block font-semibold text-teal-700 dark:text-teal-300">{def.term}</span>
         {def.definition}
       </span>
     </span>

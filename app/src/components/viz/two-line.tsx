@@ -79,7 +79,9 @@ export function TwoLineChart({
   const lastPoint = points[points.length - 1];
 
   return (
-    <div className="relative">
+    // Chart internals are dark-optimized (validated palette) — in light theme
+    // the chart keeps its own dark panel; in dark theme the panel disappears.
+    <div className="relative rounded-xl bg-[#0d1424] p-3 dark:bg-transparent dark:p-0">
       {/* legend — two series, identity never color-alone (direct labels too) */}
       <div className="mb-2 flex flex-wrap gap-4 text-xs text-slate-300">
         <span className="inline-flex items-center gap-1.5">

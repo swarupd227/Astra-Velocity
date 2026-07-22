@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +18,13 @@ import { cn } from "@/lib/cn";
 
 /**
  * Client workbench for the Governance Copilot: a Library Q&A chat and a
- * "Compose from a brief" flow. History is client-state only; the server keeps
- * the audit trail in ai_calls.
+ * "Compose from a brief" flow. Finished turns persist to localStorage so a
+ * reload keeps the working context; the server keeps the audit trail in
+ * ai_calls.
  */
+
+const QA_STORAGE_KEY = "copilot-history:qa";
+const COMPOSE_STORAGE_KEY = "copilot-history:compose";
 
 interface Citation {
   kind: string;
@@ -44,6 +55,31 @@ interface ComposeResult {
   error?: string;
 }
 
+function readStorage<T>(key: string): T | null {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: unknown): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // storage unavailable — history is session-only, which is fine
+  }
+}
+
+function clearStorage(key: string): void {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
 function citationHref(citation: Citation): string {
   return citation.kind === "best-practice" ? "/practices" : "/library";
 }
@@ -59,10 +95,44 @@ function GuardrailStrip() {
 
 function DegradedBanner() {
   return (
-    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
       Offline demo mode — no model provider reachable, so the built-in mock answered. Responses
       are deterministic and still grounded in the published library.
     </div>
+  );
+}
+
+/** "Label… 4s" — animated ellipsis plus a live elapsed-seconds counter. */
+function PendingLabel({ label }: { label: string }) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const started = Date.now();
+    const id = window.setInterval(
+      () => setSeconds(Math.floor((Date.now() - started) / 1000)),
+      500,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <span className="inline-flex items-center gap-2">
+      <Loader2 className="h-4 w-4 animate-spin" />
+      <span>
+        <span className="animated-ellipsis">{label}</span>
+        {seconds > 0 && <span className="tabular-nums"> {seconds}s</span>}
+      </span>
+    </span>
+  );
+}
+
+function ClearHistoryButton({ onClear }: { onClear: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className="inline-flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-600 dark:hover:text-slate-300"
+    >
+      <Trash2 className="h-3.5 w-3.5" aria-hidden /> Clear history
+    </button>
   );
 }
 
@@ -89,11 +159,37 @@ function LibraryQaTab() {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<QaTurn[]>([]);
   const busy = turns.some((t) => t.pending);
+  const hydratedRef = useRef(false);
+
+  // Restore finished turns once on mount; persist on every settled change.
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    const saved = readStorage<QaTurn[]>(QA_STORAGE_KEY);
+    if (!Array.isArray(saved) || saved.length === 0) return;
+    // Deferred so the restore lands after first paint instead of forcing a
+    // synchronous cascading render inside the effect.
+    const id = window.setTimeout(
+      () => setTurns(saved.filter((t) => typeof t?.question === "string" && !t.pending)),
+      0,
+    );
+    return () => window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current || busy) return;
+    if (turns.length > 0) writeStorage(QA_STORAGE_KEY, turns);
+  }, [turns, busy]);
+
+  function clearHistory() {
+    setTurns([]);
+    clearStorage(QA_STORAGE_KEY);
+  }
 
   async function ask(e: React.FormEvent) {
     e.preventDefault();
     const q = question.trim();
-    if (!q || busy) return;
+    if (q.length < 3 || busy) return;
     setQuestion("");
     setTurns((prev) => [...prev, { question: q, pending: true }]);
 
@@ -131,7 +227,7 @@ function LibraryQaTab() {
     <div className="space-y-4">
       {turns.length === 0 && (
         <Card>
-          <CardContent className="pt-5 text-sm text-slate-400">
+          <CardContent className="pt-5 text-sm text-slate-500 dark:text-slate-400">
             Ask anything the published library can answer — obligations by sector, what a
             velocity pack contains, which best practice covers claims reserving data quality.
             If it isn&apos;t in the library, the copilot says so instead of guessing.
@@ -139,11 +235,17 @@ function LibraryQaTab() {
         </Card>
       )}
 
+      {turns.length > 0 && (
+        <div className="flex justify-end">
+          <ClearHistoryButton onClear={clearHistory} />
+        </div>
+      )}
+
       <div className="space-y-3">
         {turns.map((turn, i) => (
           <div key={i} className="space-y-3">
             <div className="flex justify-end">
-              <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-teal-500/15 px-4 py-2.5 text-sm text-teal-100">
+              <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-teal-500/15 px-4 py-2.5 text-sm text-teal-900 dark:text-teal-100">
                 {turn.question}
               </div>
             </div>
@@ -152,13 +254,13 @@ function LibraryQaTab() {
                 className={cn(
                   "max-w-[85%] rounded-2xl rounded-bl-sm border px-4 py-3 text-sm",
                   turn.error
-                    ? "border-red-500/30 bg-red-500/10 text-red-200"
-                    : "border-slate-800 bg-slate-900/70 text-slate-200",
+                    ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-200"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 text-slate-700 dark:text-slate-200",
                 )}
               >
                 {turn.pending ? (
-                  <span className="inline-flex items-center gap-2 text-slate-400">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Searching the library…
+                  <span className="text-slate-500 dark:text-slate-400">
+                    <PendingLabel label="Consulting the library" />
                   </span>
                 ) : turn.error ? (
                   turn.error
@@ -179,16 +281,21 @@ function LibraryQaTab() {
         ))}
       </div>
 
-      <form onSubmit={ask} className="flex gap-2">
-        <Input
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="e.g. Which obligations apply to life & annuities reserving data?"
-          aria-label="Ask the library"
-        />
-        <Button type="submit" disabled={busy || question.trim().length < 3}>
-          Ask
-        </Button>
+      <form onSubmit={ask} className="space-y-1.5">
+        <div className="flex gap-2">
+          <Input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="e.g. Which obligations apply to life & annuities reserving data?"
+            aria-label="Ask the library"
+          />
+          <Button type="submit" disabled={busy || question.trim().length < 3}>
+            Ask
+          </Button>
+        </div>
+        {!busy && question.trim().length < 3 && (
+          <p className="text-xs text-slate-400 dark:text-slate-600">type at least 3 characters</p>
+        )}
       </form>
       <GuardrailStrip />
     </div>
@@ -203,6 +310,28 @@ function ComposeTab() {
   const [brief, setBrief] = useState("");
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<ComposeResult | null>(null);
+  const hydratedRef = useRef(false);
+
+  // Restore the last compose exchange once on mount; persist on settle.
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    const saved = readStorage<{ brief?: string; result?: ComposeResult }>(COMPOSE_STORAGE_KEY);
+    if (!saved?.result) return;
+    // Deferred so the restore lands after first paint instead of forcing a
+    // synchronous cascading render inside the effect.
+    const id = window.setTimeout(() => {
+      setResult(saved.result ?? null);
+      if (typeof saved.brief === "string") setBrief(saved.brief);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  function clearHistory() {
+    setResult(null);
+    setBrief("");
+    clearStorage(COMPOSE_STORAGE_KEY);
+  }
 
   async function compose(e: React.FormEvent) {
     e.preventDefault();
@@ -216,7 +345,11 @@ function ComposeTab() {
         body: JSON.stringify({ brief: brief.trim() }),
       });
       const data = await res.json();
-      setResult(res.ok ? data : { error: data.error ?? "The copilot hit an error." });
+      const next: ComposeResult = res.ok
+        ? data
+        : { error: data.error ?? "The copilot hit an error." };
+      setResult(next);
+      if (!next.error) writeStorage(COMPOSE_STORAGE_KEY, { brief: brief.trim(), result: next });
     } catch {
       setResult({ error: "Network error — try again." });
     } finally {
@@ -228,8 +361,11 @@ function ComposeTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-teal-400" /> Compose from a brief
+          <CardTitle className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Compose from a brief
+            </span>
+            {result && !pending && <ClearHistoryButton onClear={clearHistory} />}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -244,13 +380,7 @@ function ComposeTab() {
             <div className="flex items-center justify-between gap-3">
               <GuardrailStrip />
               <Button type="submit" disabled={pending || brief.trim().length < 20}>
-                {pending ? (
-                  <span className="inline-flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Composing…
-                  </span>
-                ) : (
-                  "Shape the engagement"
-                )}
+                {pending ? <PendingLabel label="Composing" /> : "Shape the engagement"}
               </Button>
             </div>
           </form>
@@ -258,7 +388,7 @@ function ComposeTab() {
       </Card>
 
       {result?.error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
           {result.error}
         </div>
       )}
@@ -271,8 +401,8 @@ function ComposeTab() {
                 <DegradedBanner />
               </div>
             )}
-            <p className="text-sm font-semibold text-amber-300">Needs a sharper brief</p>
-            <p className="mt-1 text-sm text-slate-300">{result.message}</p>
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Needs a sharper brief</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{result.message}</p>
           </CardContent>
         </Card>
       )}
@@ -286,7 +416,7 @@ function ComposeTab() {
           </CardHeader>
           <CardContent className="space-y-4">
             {result.degraded && <DegradedBanner />}
-            <p className="text-sm text-slate-300">{result.rationale}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{result.rationale}</p>
             {(result.suggestedElements?.length ?? 0) > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -325,13 +455,13 @@ export function CopilotWorkbench() {
 
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-full border border-slate-800 bg-slate-900/60 p-1">
+      <div className="inline-flex rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-1">
         <button
           type="button"
           onClick={() => setTab("qa")}
           className={cn(
             "inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm transition",
-            tab === "qa" ? "bg-teal-500 font-semibold text-slate-950" : "text-slate-300 hover:text-white",
+            tab === "qa" ? "bg-teal-500 font-semibold text-slate-950" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
           <BookOpenCheck className="h-4 w-4" /> Ask the Library
@@ -343,7 +473,7 @@ export function CopilotWorkbench() {
             "inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm transition",
             tab === "compose"
               ? "bg-teal-500 font-semibold text-slate-950"
-              : "text-slate-300 hover:text-white",
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
           <Sparkles className="h-4 w-4" /> Compose from a brief

@@ -121,10 +121,10 @@ export function StewardQueue({
 
   if (visible.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center">
-        <Bot className="mx-auto h-8 w-8 text-slate-600" />
-        <h2 className="mt-3 text-lg font-semibold text-white">The queue is clear</h2>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+      <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-12 text-center">
+        <Bot className="mx-auto h-8 w-8 text-slate-400 dark:text-slate-600" />
+        <h2 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">The queue is clear</h2>
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
           Agent co-workers draft glossary terms, DQ rules, classifications, lineage stitches,
           triage bundles, and drift flags from the content library. Nothing publishes without a
           steward decision — run the agents to fill your morning queue.
@@ -139,12 +139,12 @@ export function StewardQueue({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-xs text-slate-400">
+        <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           Agent
           <select
             value={agentFilter}
             onChange={(e) => setAgentFilter(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200"
           >
             <option value="all">All agents</option>
             {agents.map((a) => (
@@ -154,12 +154,12 @@ export function StewardQueue({
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-xs text-slate-400">
+        <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           Kind
           <select
             value={kindFilter}
             onChange={(e) => setKindFilter(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200"
           >
             <option value="all">All kinds</option>
             {kinds.map((k) => (
@@ -184,8 +184,8 @@ export function StewardQueue({
         return (
           <section key={agentKey}>
             <div className="mb-2 flex items-baseline gap-3">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Bot className="h-4 w-4 text-teal-400" /> {agent?.name ?? agentKey}
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                <Bot className="h-4 w-4 text-teal-600 dark:text-teal-400" /> {agent?.name ?? agentKey}
               </h2>
               <span className="text-xs text-slate-500">
                 {items.length} pending{agent ? ` · ${agent.pitch}` : ""}
@@ -219,7 +219,7 @@ function SuggestionCard({
   const pct = Math.round(s.confidence * 100);
 
   return (
-    <li className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+    <li className="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={KIND_VARIANT[s.kind] ?? "default"}>
           {SUGGESTION_KIND_LABELS[s.kind as SuggestionKind] ?? s.kind}
@@ -228,7 +228,7 @@ function SuggestionCard({
           drafted {new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
         </span>
       </div>
-      <h3 className="mt-2 text-sm font-semibold text-white">{s.title}</h3>
+      <h3 className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{s.title}</h3>
 
       <div className="mt-2 flex-1">
         <PayloadView kind={s.kind} payload={s.payload} />
@@ -238,12 +238,12 @@ function SuggestionCard({
       <div className="mt-3">
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-500">Confidence</span>
-          <span className={lowConfidence ? "flex items-center gap-1 text-amber-300" : "text-slate-400"}>
+          <span className={lowConfidence ? "flex items-center gap-1 text-amber-700 dark:text-amber-300" : "text-slate-500 dark:text-slate-400"}>
             {lowConfidence && <AlertTriangle className="h-3 w-3" />}
             {pct}%{lowConfidence ? " — needs closer review" : ""}
           </span>
         </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
           <div
             className={`h-full rounded-full ${lowConfidence ? "bg-amber-400" : "bg-teal-500"}`}
             style={{ width: `${pct}%` }}
@@ -251,7 +251,7 @@ function SuggestionCard({
         </div>
       </div>
 
-      <div className="mt-3 border-t border-slate-800 pt-3">
+      <div className="mt-3 border-t border-slate-200 dark:border-slate-800 pt-3">
         {editing ? (
           <form
             onSubmit={(e) => {
@@ -266,7 +266,7 @@ function SuggestionCard({
               rows={2}
               required
               placeholder="Steward note — what you changed or verified before approving…"
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-600"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950/60 px-3 py-2 text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600"
             />
             <div className="flex gap-2">
               <Button type="submit" size="sm">
@@ -289,7 +289,7 @@ function SuggestionCard({
               type="button"
               variant="ghost"
               size="sm"
-              className="text-slate-400"
+              className="text-slate-500 dark:text-slate-400"
               prompt="Reject this suggestion?"
               confirmLabel="Reject"
               onConfirm={() => onDecide("reject")}
@@ -309,8 +309,8 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
   if (kind === "glossary-term") {
     return (
       <div className="space-y-1 text-xs">
-        <p className="font-medium text-teal-300">{str("term")}</p>
-        <p className="text-slate-300">{str("definition")}</p>
+        <p className="font-medium text-teal-700 dark:text-teal-300">{str("term")}</p>
+        <p className="text-slate-600 dark:text-slate-300">{str("definition")}</p>
         {str("evidence") && <p className="text-slate-500">Evidence: {str("evidence")}</p>}
       </div>
     );
@@ -318,10 +318,10 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
   if (kind === "dq-rule") {
     return (
       <div className="space-y-1.5 text-xs">
-        <pre className="overflow-x-auto rounded-lg bg-slate-950/70 px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-200">
+        <pre className="overflow-x-auto rounded-lg bg-slate-100 dark:bg-slate-950/70 px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-800 dark:text-teal-200">
           {str("ruleKey")}: {str("expression")}
         </pre>
-        <p className="text-slate-400">
+        <p className="text-slate-500 dark:text-slate-400">
           {str("obligation") ? `Protects: ${str("obligation")}` : null}
         </p>
         {str("evidence") && <p className="text-slate-500">Evidence: {str("evidence")}</p>}
@@ -332,18 +332,18 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
     const chain = Array.isArray(payload.chain) ? (payload.chain as string[]) : [];
     return (
       <div className="space-y-1.5 text-xs">
-        <p className="font-mono text-[11px] text-slate-300">
-          {str("attribute")} <span className="text-slate-600">·</span> {str("dataset")}
+        <p className="font-mono text-[11px] text-slate-600 dark:text-slate-300">
+          {str("attribute")} <span className="text-slate-400 dark:text-slate-600">·</span> {str("dataset")}
         </p>
         <p className="flex flex-wrap items-center gap-1">
           {chain.map((c, i) => (
             <span key={c} className="flex items-center gap-1">
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] text-amber-200">{c}</span>
-              {i < chain.length - 1 && <span className="text-slate-600">→</span>}
+              <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[11px] text-amber-800 dark:text-amber-200">{c}</span>
+              {i < chain.length - 1 && <span className="text-slate-400 dark:text-slate-600">→</span>}
             </span>
           ))}
           {payload.cdeCandidate === true && (
-            <span className="rounded-full bg-teal-500/15 px-2 py-0.5 text-[11px] text-teal-300">CDE candidate</span>
+            <span className="rounded-full bg-teal-500/15 px-2 py-0.5 text-[11px] text-teal-700 dark:text-teal-300">CDE candidate</span>
           )}
         </p>
         {str("rationale") && <p className="text-slate-500">{str("rationale")}</p>}
@@ -353,10 +353,10 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
   if (kind === "lineage-stitch") {
     return (
       <div className="space-y-1.5 text-xs">
-        <p className="font-mono text-[11px] text-slate-300">
-          {str("source")} <span className="text-teal-400">→</span> {str("target")}
+        <p className="font-mono text-[11px] text-slate-600 dark:text-slate-300">
+          {str("source")} <span className="text-teal-600 dark:text-teal-400">→</span> {str("target")}
         </p>
-        <p className="text-slate-400">{str("method")}</p>
+        <p className="text-slate-500 dark:text-slate-400">{str("method")}</p>
         {str("coverageGain") && <p className="text-slate-500">{str("coverageGain")}</p>}
       </div>
     );
@@ -369,14 +369,14 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
       <div className="space-y-1.5 text-xs">
         <ul className="space-y-1">
           {alerts.map((a, i) => (
-            <li key={i} className="flex items-start gap-1.5 text-slate-300">
+            <li key={i} className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
               <AlertTriangle
                 className={`mt-0.5 h-3 w-3 shrink-0 ${
                   a.severity === "critical"
-                    ? "text-red-400"
+                    ? "text-red-600 dark:text-red-400"
                     : a.severity === "serious"
-                      ? "text-orange-400"
-                      : "text-amber-300"
+                      ? "text-orange-600 dark:text-orange-400"
+                      : "text-amber-700 dark:text-amber-300"
                 }`}
               />
               <span>
@@ -385,8 +385,8 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
             </li>
           ))}
         </ul>
-        <p className="text-slate-400">
-          Owner: <span className="text-slate-200">{str("proposedOwner")}</span> · {str("priority")} · due in{" "}
+        <p className="text-slate-500 dark:text-slate-400">
+          Owner: <span className="text-slate-700 dark:text-slate-200">{str("proposedOwner")}</span> · {str("priority")} · due in{" "}
           {String(payload.dueInDays ?? "—")}d
         </p>
         {str("rationale") && <p className="text-slate-500">{str("rationale")}</p>}
@@ -396,10 +396,10 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
   if (kind === "drift-flag") {
     return (
       <div className="space-y-1 text-xs">
-        <p className="text-slate-400">
+        <p className="text-slate-500 dark:text-slate-400">
           <span className="text-slate-500">Standard:</span> {str("standard")}
         </p>
-        <p className="text-slate-400">
+        <p className="text-slate-500 dark:text-slate-400">
           <span className="text-slate-500">Deployed:</span> {str("deployed")}
         </p>
         {str("proposedRoute") && <p className="text-slate-500">Route: {str("proposedRoute")}</p>}
@@ -407,7 +407,7 @@ function PayloadView({ kind, payload }: { kind: string; payload: Record<string, 
     );
   }
   return (
-    <pre className="overflow-x-auto rounded-lg bg-slate-950/70 px-3 py-2 font-mono text-[11px] text-slate-300">
+    <pre className="overflow-x-auto rounded-lg bg-slate-100 dark:bg-slate-950/70 px-3 py-2 font-mono text-[11px] text-slate-600 dark:text-slate-300">
       {JSON.stringify(payload, null, 2)}
     </pre>
   );

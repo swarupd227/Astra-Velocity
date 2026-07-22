@@ -39,8 +39,8 @@ export default async function ProjectsPage() {
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-white">Projects</h1>
-          <p className="mt-1 text-slate-400">
+          <h1 className="font-display text-3xl text-slate-900 dark:text-white">Projects</h1>
+          <p className="mt-1 text-slate-500 dark:text-slate-400">
             Composed governance projects in your workspace — open one for its blueprint.
           </p>
         </div>
@@ -53,10 +53,10 @@ export default async function ProjectsPage() {
       </header>
 
       {projects.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center">
-          <Blocks className="mx-auto h-8 w-8 text-slate-600" />
-          <h2 className="mt-3 text-lg font-semibold text-white">No projects yet</h2>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+        <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-12 text-center">
+          <Blocks className="mx-auto h-8 w-8 text-slate-400 dark:text-slate-600" />
+          <h2 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">No projects yet</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
             Compose your first governance project: pick a sector and scenario, and the engine
             assembles the Velocity Pack.
           </p>
@@ -73,19 +73,19 @@ export default async function ProjectsPage() {
             <li key={project.id}>
               <Link
                 href={`/projects/${project.id}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-teal-500/50"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5 transition hover:border-teal-500/50"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-semibold text-white">{project.name}</h2>
+                    <h2 className="font-semibold text-slate-900 dark:text-white">{project.name}</h2>
                     {project.clientLabel && (
                       <Badge variant="highlight">{project.clientLabel}</Badge>
                     )}
                     <Badge variant={STATUS_VARIANT[project.status]}>{project.status}</Badge>
                   </div>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {sectorNames.get(project.sectorKey) ?? project.sectorKey}
-                    <span className="text-slate-600"> × </span>
+                    <span className="text-slate-400 dark:text-slate-600"> × </span>
                     {scenarioNames.get(project.scenarioKey) ?? project.scenarioKey}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
@@ -94,7 +94,7 @@ export default async function ProjectsPage() {
                     {dateFormat.format(project.updatedAt)}
                   </p>
                 </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-slate-600" />
+                <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 dark:text-slate-600" />
               </Link>
             </li>
           ))}

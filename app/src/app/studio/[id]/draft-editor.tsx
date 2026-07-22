@@ -47,10 +47,10 @@ export function DraftEditor({
 
       {state.errors && state.errors.length > 0 && (
         <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm">
-          <p className="flex items-center gap-2 font-semibold text-red-300">
+          <p className="flex items-center gap-2 font-semibold text-red-700 dark:text-red-300">
             <TriangleAlert className="h-4 w-4" /> Validation failed — nothing was saved
           </p>
-          <ul className="mt-2 space-y-1 font-mono text-xs text-red-200">
+          <ul className="mt-2 space-y-1 font-mono text-xs text-red-700 dark:text-red-200">
             {state.errors.map((err, i) => (
               <li key={i}>{err}</li>
             ))}
@@ -58,7 +58,7 @@ export function DraftEditor({
         </div>
       )}
       {state.ok && state.savedAt && (
-        <div className="flex items-center gap-2 rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-300">
+        <div className="flex items-center gap-2 rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-700 dark:text-teal-300">
           <CircleCheck className="h-4 w-4" /> Draft saved and validated against the {kindLabel}{" "}
           schema.
         </div>

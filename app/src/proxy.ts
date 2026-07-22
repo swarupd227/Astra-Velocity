@@ -30,6 +30,12 @@ export async function proxy(req: NextRequest) {
   if (!token) {
     const login = new URL("/login", req.url);
     login.searchParams.set("callbackUrl", pathname);
+    // A session cookie is present but did not decode to a token — it expired
+    // or is invalid. Tell the login page so it can explain the bounce.
+    const hadSession =
+      req.cookies.has("__Secure-authjs.session-token") ||
+      req.cookies.has("authjs.session-token");
+    if (hadSession) login.searchParams.set("expired", "1");
     return NextResponse.redirect(login);
   }
   return NextResponse.next();

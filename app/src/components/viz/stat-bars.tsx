@@ -22,7 +22,9 @@ export function StatBars({ rows, maxValue }: { rows: StatBarRow[]; maxValue?: nu
   const max = maxValue ?? Math.max(1, ...rows.map((r) => r.value));
 
   return (
-    <div className="space-y-2">
+    // Chart internals are dark-optimized (validated palette) — in light theme
+    // the chart keeps its own dark panel; in dark theme the panel disappears.
+    <div className="space-y-2 rounded-xl bg-[#0d1424] p-4 dark:bg-transparent dark:p-0">
       {rows.map((row) => (
         <div
           key={row.key}

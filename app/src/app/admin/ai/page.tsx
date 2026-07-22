@@ -128,12 +128,12 @@ export default async function AdminAiPage({
       <header>
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-300"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 dark:hover:text-teal-300"
         >
           <ArrowLeft className="h-3 w-3" /> Admin
         </Link>
-        <h1 className="mt-1 font-display text-3xl text-white">AI Administration</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="mt-1 font-display text-3xl text-slate-900 dark:text-white">AI Administration</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Every model call flows through one gateway: routing and kill-switches below take effect
           on the next call, and every change here lands in the audit trail.
         </p>
@@ -142,17 +142,17 @@ export default async function AdminAiPage({
       {/* Guardrail posture — structural, not configurable */}
       <div className="grid gap-3 sm:grid-cols-3">
         <GuardrailTile
-          icon={<Eraser className="h-4 w-4 text-teal-400" />}
+          icon={<Eraser className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           title="Redaction — always on"
           text="PII/NPPI is scrubbed before any prompt leaves the boundary; only counts are recorded."
         />
         <GuardrailTile
-          icon={<ShieldCheck className="h-4 w-4 text-teal-400" />}
+          icon={<ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           title="Containment — always on"
           text="User and retrieved content is wrapped as untrusted data; injected instructions are inert."
         />
         <GuardrailTile
-          icon={<FileCheck2 className="h-4 w-4 text-teal-400" />}
+          icon={<FileCheck2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           title="Audit — always on"
           text="Every call — served, degraded, killed, or errored — writes an ai_calls row. No exceptions."
         />
@@ -160,22 +160,22 @@ export default async function AdminAiPage({
 
       {/* Provider credentials */}
       <section>
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-          <KeyRound className="h-4 w-4 text-teal-400" /> Provider credentials
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+          <KeyRound className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Provider credentials
         </h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           The Anthropic key is encrypted at rest, shown only by its last 4 characters, and never
           logged. An environment-supplied key acts as fallback. Saving takes effect on the next
           call — no restart required.
         </p>
 
         {sp.test === "live" && (
-          <div className="mt-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+          <div className="mt-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
             Connection test passed — the gateway reached Anthropic and AI is live.
           </div>
         )}
         {sp.test === "degraded" && (
-          <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+          <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
             Connection test degraded to the mock provider — check that the key is valid and the
             routing provider is set to anthropic.
           </div>
@@ -186,10 +186,10 @@ export default async function AdminAiPage({
             action={setAnthropicKeyAction}
             success="API key saved — takes effect on the next call"
             error="Could not save the key — check its format and try again."
-            className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5"
           >
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">
+              <span className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Anthropic API key
               </span>
               <Input
@@ -210,8 +210,8 @@ export default async function AdminAiPage({
             </div>
           </ActionForm>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <p className="text-sm font-medium text-slate-300">Status</p>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Status</p>
             <p className="mt-2 text-sm">
               {keyStatus.source === "none" ? (
                 <Badge variant="highlight">Not configured — mock fallback active</Badge>
@@ -254,16 +254,16 @@ export default async function AdminAiPage({
 
       {/* Routing */}
       <section>
-        <h2 className="text-lg font-semibold text-white">Model routing</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Features without an override inherit <code className="font-mono text-xs text-teal-300">routing.default</code>.
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Model routing</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Features without an override inherit <code className="font-mono text-xs text-teal-700 dark:text-teal-300">routing.default</code>.
           Providers that are unavailable at call time fall back to the mock provider with a visible
           degraded flag.
         </p>
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3 font-medium">Scope</th>
                 <th className="px-4 py-3 font-medium">Provider</th>
                 <th className="px-4 py-3 font-medium">Model</th>
@@ -292,8 +292,8 @@ export default async function AdminAiPage({
 
       {/* Kill-switches */}
       <section>
-        <h2 className="text-lg font-semibold text-white">Kill-switches</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Kill-switches</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Engaging a switch pauses AI assistance for that scope immediately; manual workflows remain
           available and every refused call is still audited.
         </p>
@@ -304,12 +304,12 @@ export default async function AdminAiPage({
               <div
                 key={scope}
                 className={`rounded-2xl border p-4 ${
-                  engaged ? "border-red-500/50 bg-red-500/5" : "border-slate-800 bg-slate-900/60"
+                  engaged ? "border-red-500/50 bg-red-500/5" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Siren className={`h-4 w-4 ${engaged ? "text-red-400" : "text-slate-500"}`} />
-                  <p className="font-mono text-xs text-slate-300">killswitch.{scope}</p>
+                  <Siren className={`h-4 w-4 ${engaged ? "text-red-600 dark:text-red-400" : "text-slate-500"}`} />
+                  <p className="font-mono text-xs text-slate-600 dark:text-slate-300">killswitch.{scope}</p>
                   {engaged ? (
                     <Badge variant="danger">Engaged</Badge>
                   ) : (
@@ -356,7 +356,7 @@ export default async function AdminAiPage({
 
       {/* Cost & usage */}
       <section>
-        <h2 className="text-lg font-semibold text-white">Cost & usage — last 30 days</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Cost & usage — last 30 days</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <UsageTile label="Calls" value={fmtInt(totals?.calls)} />
           <UsageTile label="Tokens in" value={fmtInt(totals?.inputTokens)} />
@@ -391,9 +391,9 @@ function RoutingRow({
 }) {
   const isDefault = feature === "default";
   return (
-    <tr className="border-b border-slate-800/60 last:border-0">
+    <tr className="border-b border-slate-200/70 dark:border-slate-800/60 last:border-0">
       <td className="px-4 py-3">
-        <span className={`font-mono text-xs ${isDefault ? "text-teal-300" : "text-slate-200"}`}>
+        <span className={`font-mono text-xs ${isDefault ? "text-teal-700 dark:text-teal-300" : "text-slate-700 dark:text-slate-200"}`}>
           {label}
         </span>
       </td>
@@ -460,13 +460,13 @@ function GuardrailTile({
   text: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
       <div className="flex items-center gap-2">
         {icon}
-        <p className="text-sm font-semibold text-white">{title}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
       </div>
-      <p className="mt-1.5 text-xs text-slate-400">{text}</p>
-      <p className="mt-2 text-[11px] uppercase tracking-wide text-slate-600">
+      <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{text}</p>
+      <p className="mt-2 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-600">
         Structural, not configurable
       </p>
     </div>
@@ -475,8 +475,8 @@ function GuardrailTile({
 
 function UsageTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-      <p className="text-lg font-semibold leading-tight text-white tabular-nums">{value}</p>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-4 py-3">
+      <p className="text-lg font-semibold leading-tight text-slate-900 dark:text-white tabular-nums">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>
   );
@@ -492,12 +492,12 @@ function UsageTable({
   rows: (UsageRow & { name: string })[];
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60">
-      <p className="border-b border-slate-800 px-4 py-3 text-sm font-semibold text-white">{title}</p>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+      <p className="border-b border-slate-200 dark:border-slate-800 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[520px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-2 font-medium">{nameHeader}</th>
               <th className="px-4 py-2 text-right font-medium">Calls</th>
               <th className="px-4 py-2 text-right font-medium">Tok in</th>
@@ -516,14 +516,14 @@ function UsageTable({
               </tr>
             )}
             {rows.map((r) => (
-              <tr key={r.name} className="border-b border-slate-800/60 last:border-0">
-                <td className="px-4 py-2 font-mono text-xs text-slate-200">{r.name}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtInt(r.calls)}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtInt(r.inputTokens)}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtInt(r.outputTokens)}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtUsd(r.costUsd)}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtMs(r.avgLatency)}</td>
-                <td className="px-4 py-2 text-right text-slate-300">{fmtPct(r.mockCalls, r.calls)}</td>
+              <tr key={r.name} className="border-b border-slate-200/70 dark:border-slate-800/60 last:border-0">
+                <td className="px-4 py-2 font-mono text-xs text-slate-700 dark:text-slate-200">{r.name}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtInt(r.calls)}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtInt(r.inputTokens)}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtInt(r.outputTokens)}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtUsd(r.costUsd)}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtMs(r.avgLatency)}</td>
+                <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300">{fmtPct(r.mockCalls, r.calls)}</td>
               </tr>
             ))}
           </tbody>

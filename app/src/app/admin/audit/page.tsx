@@ -90,12 +90,12 @@ export default async function AdminAuditPage({
       <header>
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-300"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 dark:hover:text-teal-300"
         >
           <ArrowLeft className="h-3 w-3" /> Admin
         </Link>
-        <h1 className="mt-1 font-display text-3xl text-white">Audit Center</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="mt-1 font-display text-3xl text-slate-900 dark:text-white">Audit Center</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Append-only record of human, agent, and system actions, and the full trail of AI model
           calls. Newest first, {PAGE_SIZE} rows per page.
         </p>
@@ -129,8 +129,8 @@ function TabLink({
       href={href}
       className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
         active
-          ? "bg-teal-500/15 text-teal-300"
-          : "border border-slate-800 text-slate-400 hover:border-slate-600"
+          ? "bg-teal-500/15 text-teal-700 dark:text-teal-300"
+          : "border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
       }`}
     >
       {children}
@@ -221,16 +221,16 @@ async function AuditTab({
           Apply filters
         </Button>
         {(actor || prefix || entity || before) && (
-          <Link href="/admin/audit" className="text-xs text-slate-500 hover:text-teal-300">
+          <Link href="/admin/audit" className="text-xs text-slate-500 hover:text-teal-600 dark:hover:text-teal-300">
             Reset
           </Link>
         )}
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
         <table className="w-full min-w-[900px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-medium">Timestamp</th>
               <th className="px-4 py-3 font-medium">Actor</th>
               <th className="px-4 py-3 font-medium">Action</th>
@@ -249,8 +249,8 @@ async function AuditTab({
             {rows.map((row) => {
               const detail = row.detail ? JSON.stringify(row.detail) : "";
               return (
-                <tr key={row.id} className="border-b border-slate-800/60 align-top last:border-0">
-                  <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-400 tabular-nums">
+                <tr key={row.id} className="border-b border-slate-200/70 dark:border-slate-800/60 align-top last:border-0">
+                  <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                     {dateFmt.format(row.createdAt)}
                   </td>
                   <td className="px-4 py-2.5">
@@ -264,12 +264,12 @@ async function AuditTab({
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-teal-200">{row.action}</td>
-                  <td className="px-4 py-2.5 text-xs text-slate-400">
+                  <td className="px-4 py-2.5 font-mono text-xs text-teal-800 dark:text-teal-200">{row.action}</td>
+                  <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                     {row.entityType ?? "—"}
                     {row.entityId && (
                       <p
-                        className="max-w-[160px] truncate font-mono text-[11px] text-slate-600"
+                        className="max-w-[160px] truncate font-mono text-[11px] text-slate-400 dark:text-slate-600"
                         title={row.entityId}
                       >
                         {row.entityId}
@@ -278,7 +278,7 @@ async function AuditTab({
                   </td>
                   <td className="px-4 py-2.5">
                     <p
-                      className="max-w-[360px] truncate font-mono text-[11px] text-slate-400"
+                      className="max-w-[360px] truncate font-mono text-[11px] text-slate-500 dark:text-slate-400"
                       title={detail}
                     >
                       {detail || "—"}
@@ -295,7 +295,7 @@ async function AuditTab({
         <div className="text-center">
           <Link
             href={loadMoreHref}
-            className="inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+            className="inline-flex rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500"
           >
             Load older entries
           </Link>
@@ -325,10 +325,10 @@ async function AiCallsTab({ sp }: { sp: { before?: string } }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-medium">Timestamp</th>
               <th className="px-4 py-3 font-medium">Feature</th>
               <th className="px-4 py-3 font-medium">Provider / model</th>
@@ -352,31 +352,31 @@ async function AiCallsTab({ sp }: { sp: { before?: string } }) {
               const report = (row.redactionReport ?? {}) as Record<string, number>;
               const redactions = Object.values(report).reduce((a, b) => a + (Number(b) || 0), 0);
               return (
-                <tr key={row.id} className="border-b border-slate-800/60 last:border-0">
-                  <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-400">
+                <tr key={row.id} className="border-b border-slate-200/70 dark:border-slate-800/60 last:border-0">
+                  <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                     {dateFmt.format(row.createdAt)}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-slate-200">{row.feature}</td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-slate-400">
+                  <td className="px-4 py-2.5 font-mono text-xs text-slate-700 dark:text-slate-200">{row.feature}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">
                     {row.provider} / {row.model}
                   </td>
                   <td className="px-4 py-2.5">
                     <Badge variant={STATUS_VARIANT[row.status] ?? "default"}>{row.status}</Badge>
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-slate-300">
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-600 dark:text-slate-300">
                     {(row.inputTokens ?? 0).toLocaleString("en-US")}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-slate-300">
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-600 dark:text-slate-300">
                     {(row.outputTokens ?? 0).toLocaleString("en-US")}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-slate-300">
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-600 dark:text-slate-300">
                     ${Number(row.costUsd ?? 0).toFixed(4)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-slate-300">
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-600 dark:text-slate-300">
                     {row.latencyMs ?? 0} ms
                   </td>
                   <td
-                    className="px-4 py-2.5 text-right text-xs text-slate-300"
+                    className="px-4 py-2.5 text-right text-xs text-slate-600 dark:text-slate-300"
                     title={redactions > 0 ? JSON.stringify(report) : undefined}
                   >
                     {redactions}
@@ -392,7 +392,7 @@ async function AiCallsTab({ sp }: { sp: { before?: string } }) {
         <div className="text-center">
           <Link
             href={loadMoreHref}
-            className="inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-500"
+            className="inline-flex rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500"
           >
             Load older entries
           </Link>
@@ -404,7 +404,7 @@ async function AiCallsTab({ sp }: { sp: { before?: string } }) {
 
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-slate-400">
+    <label className="flex flex-col gap-1 text-xs text-slate-500 dark:text-slate-400">
       {label}
       {children}
     </label>

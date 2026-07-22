@@ -7,7 +7,7 @@ export const metadata = { title: "Sign in — Astra Velocity" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string; expired?: string }>;
 }) {
   const session = await auth();
   const params = await searchParams;
@@ -48,6 +48,11 @@ export default async function LoginPage({
           className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-8 shadow-2xl"
         >
           <input type="hidden" name="callbackUrl" value={params.callbackUrl ?? "/"} />
+          {params.expired === "1" && !params.error && (
+            <p className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm text-sky-200">
+              Your session expired — sign in to continue.
+            </p>
+          )}
           {params.error && (
             <p className="rounded-lg border border-red-900 bg-red-950/60 px-3 py-2 text-sm text-red-300">
               Invalid email or password.

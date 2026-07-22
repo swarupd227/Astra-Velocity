@@ -17,7 +17,7 @@ export function EmphasisRadar({
 }) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size / 2 - 42;
+  const r = size / 2 - 48;
   const n = CAPABILITIES.length;
 
   const point = (i: number, value: number) => {
@@ -31,7 +31,14 @@ export function EmphasisRadar({
     .join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full" role="img" aria-label="Capability emphasis radar">
+    // Chart internals are dark-optimized (validated palette) — in light theme
+    // the chart keeps its own dark panel; in dark theme the panel disappears.
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      className="w-full rounded-xl bg-[#0d1424] dark:bg-transparent"
+      role="img"
+      aria-label="Capability emphasis radar"
+    >
       {[1, 2, 3].map((ring) => (
         <polygon
           key={ring}
@@ -43,7 +50,7 @@ export function EmphasisRadar({
       ))}
       {CAPABILITIES.map((cap, i) => {
         const [px, py] = point(i, 3);
-        const [lx, ly] = point(i, 3.9);
+        const [lx, ly] = point(i, 3.95);
         return (
           <g key={cap}>
             <line x1={cx} y1={cy} x2={px} y2={py} stroke={CHART.ink.grid} strokeWidth={1} />
@@ -52,7 +59,7 @@ export function EmphasisRadar({
               y={ly}
               textAnchor="middle"
               dominantBaseline="middle"
-              fontSize={9}
+              fontSize={11}
               fill={(emphasis[cap] ?? 0) >= 2 ? CHART.ink.primary : CHART.ink.muted}
             >
               {CAPABILITY_LABELS[cap].split(" & ")[0]}

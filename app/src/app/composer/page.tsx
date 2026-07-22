@@ -41,8 +41,8 @@ export default async function ComposerPage({
         <WelcomePanel workspace="composer" />
 
         <header>
-          <h1 className="font-display text-3xl text-white">Project Composer</h1>
-          <p className="mt-1 max-w-2xl text-slate-400">
+          <h1 className="font-display text-3xl text-slate-900 dark:text-white">Project Composer</h1>
+          <p className="mt-1 max-w-2xl text-slate-500 dark:text-slate-400">
             Pick the client&apos;s sector, then the engagement scenario. The engine composes a{" "}
             <Term k="velocity-pack">Velocity Pack</Term> — every element justified by best
             practices and <Term k="obligation">obligations</Term>.
@@ -51,8 +51,8 @@ export default async function ComposerPage({
 
         <section>
           <div className="mb-3 flex items-baseline gap-3">
-            <h2 className="text-lg font-semibold text-white">1 · Sector</h2>
-            {sector && <span className="text-sm text-teal-300">{sector.name}</span>}
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">1 · Sector</h2>
+            {sector && <span className="text-sm text-teal-700 dark:text-teal-300">{sector.name}</span>}
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {sectors.map((s) => {
@@ -64,11 +64,11 @@ export default async function ComposerPage({
                   className={`rounded-2xl border p-4 transition ${
                     active
                       ? "border-teal-500/60 bg-teal-500/10"
-                      : "border-slate-800 bg-slate-900/60 hover:border-slate-600"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-400 dark:hover:border-slate-600"
                   }`}
                 >
-                  <h3 className="font-semibold text-white">{s.name}</h3>
-                  <p className="mt-1 text-sm text-slate-400">{s.tagline}</p>
+                  <h3 className="font-semibold text-slate-900 dark:text-white">{s.name}</h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{s.tagline}</p>
                   <p className="mt-2 text-xs text-slate-500">{s.distributionModel}</p>
                 </Link>
               );
@@ -79,7 +79,7 @@ export default async function ComposerPage({
         {sector && (
           <section>
             <div className="mb-3 flex items-baseline gap-3">
-              <h2 className="text-lg font-semibold text-white">2 · Scenario</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">2 · Scenario</h2>
               <span className="text-sm text-slate-500">
                 What is the client actually trying to do?
               </span>
@@ -89,13 +89,13 @@ export default async function ComposerPage({
                 <Link
                   key={sc.key}
                   href={`/composer?sector=${sector.key}&scenario=${sc.key}`}
-                  className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-teal-500/50"
+                  className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 transition hover:border-teal-500/50"
                 >
-                  <h3 className="font-semibold text-white">{sc.name}</h3>
-                  <p className="mt-1 text-sm text-slate-400">{sc.tagline}</p>
+                  <h3 className="font-semibold text-slate-900 dark:text-white">{sc.name}</h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{sc.tagline}</p>
                   <p className="mt-2 line-clamp-2 text-xs text-slate-500">{sc.stakes}</p>
                   {sc.sectorNotes?.[sector.key] && (
-                    <p className="mt-2 line-clamp-2 text-xs text-teal-300/80">
+                    <p className="mt-2 line-clamp-2 text-xs text-teal-700/80 dark:text-teal-300/80">
                       {sc.sectorNotes[sector.key]}
                     </p>
                   )}
@@ -129,14 +129,14 @@ export default async function ComposerPage({
         <div>
           <Link
             href={`/composer?sector=${sector.key}`}
-            className="mb-2 inline-flex items-center gap-1 text-sm text-slate-400 hover:text-white"
+            className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Change sector / scenario
           </Link>
-          <h1 className="font-display text-3xl text-white">
+          <h1 className="font-display text-3xl text-slate-900 dark:text-white">
             {sector.name} <span className="text-slate-500">×</span> {scenario.name}
           </h1>
-          <p className="mt-1 max-w-2xl text-slate-400">{scenario.stakes}</p>
+          <p className="mt-1 max-w-2xl text-slate-500 dark:text-slate-400">{scenario.stakes}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge variant="accent">{recommendations.length} recommended elements</Badge>

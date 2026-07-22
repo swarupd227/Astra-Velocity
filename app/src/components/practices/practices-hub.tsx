@@ -107,35 +107,35 @@ export function PracticesHub({
           return (
             <Card key={practice.key}>
               <CardHeader>
-                <h2 className="font-display text-2xl text-white">{practice.title}</h2>
-                <p className="text-sm text-slate-300">{practice.statement}</p>
+                <h2 className="font-display text-2xl text-slate-900 dark:text-white">{practice.title}</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{practice.statement}</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {note && (
-                  <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-200">
+                  <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-800 dark:text-teal-200">
                     <span className="font-semibold">In {activeSector?.name}: </span>
                     {note}
                   </div>
                 )}
 
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-400">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
                       What good looks like
                     </h3>
-                    <p className="mt-2 text-sm text-slate-300">{practice.whatGoodLooksLike}</p>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{practice.whatGoodLooksLike}</p>
                   </div>
-                  <div className="rounded-xl border border-slate-800 border-l-4 border-l-amber-500 bg-slate-950/60 p-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-400">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 bg-slate-100 dark:bg-slate-950/60 p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
                       Anti-pattern
                     </h3>
-                    <p className="mt-2 text-sm text-slate-300">{practice.antiPattern}</p>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{practice.antiPattern}</p>
                   </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-4">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Evidence
                     </h3>
-                    <p className="mt-2 text-sm text-slate-400">{practice.evidence}</p>
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{practice.evidence}</p>
                   </div>
                 </div>
 
@@ -153,17 +153,17 @@ export function PracticesHub({
                 </div>
 
                 {ops.length > 0 && (
-                  <p className="border-t border-slate-800 pt-3 text-xs text-slate-400">
-                    <span className="font-semibold text-white">
+                  <p className="border-t border-slate-200 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="font-semibold text-slate-900 dark:text-white">
                       Operationalized by {ops.length} library element{ops.length === 1 ? "" : "s"}
                     </span>
                     {" — "}
                     {ops.map((el, i) => (
                       <span key={el.key}>
-                        {i > 0 && <span className="text-slate-600"> · </span>}
+                        {i > 0 && <span className="text-slate-400 dark:text-slate-600"> · </span>}
                         <Link
                           href={`/library/${el.key}`}
-                          className="text-teal-300 transition hover:text-teal-200 hover:underline"
+                          className="text-teal-700 dark:text-teal-300 transition hover:text-teal-600 dark:hover:text-teal-200 hover:underline"
                         >
                           {el.name}
                         </Link>

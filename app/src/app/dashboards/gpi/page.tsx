@@ -23,16 +23,16 @@ export default async function GpiDashboardPage() {
     <div className="space-y-6">
       <Link
         href="/dashboards"
-        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" /> Dashboards
       </Link>
 
       <header>
-        <h1 className="font-display text-3xl text-white">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">
           <Term k="gpi">GPI</Term> Portfolio
         </h1>
-        <p className="mt-1 text-slate-400">
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           So what: is the portfolio on trajectory to {portfolio.burnUpTarget} governed data
           products by Q4-28 — and which products are stalling?
         </p>
@@ -92,7 +92,7 @@ export default async function GpiDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-left text-xs text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-left text-xs text-slate-500">
                   <th className="py-2 pr-4 font-medium">Data product</th>
                   <th className="py-2 pr-4 font-medium">Wave</th>
                   <th className="py-2 pr-4 font-medium">Domain</th>
@@ -104,8 +104,8 @@ export default async function GpiDashboardPage() {
                 {products.map((p) => {
                   const delta = Math.round((p.currentGpi - p.previousGpi) * 10) / 10;
                   return (
-                    <tr key={p.key} className="border-b border-slate-800/60">
-                      <td className="py-2 pr-4 text-slate-200">
+                    <tr key={p.key} className="border-b border-slate-200/70 dark:border-slate-800/60">
+                      <td className="py-2 pr-4 text-slate-700 dark:text-slate-200">
                         {p.name}
                         {p.atTarget && (
                           <Badge variant="accent" className="ml-2 text-[10px]">
@@ -113,7 +113,7 @@ export default async function GpiDashboardPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="py-2 pr-4 text-slate-400">Wave {p.wave}</td>
+                      <td className="py-2 pr-4 text-slate-500 dark:text-slate-400">Wave {p.wave}</td>
                       <td className="py-2 pr-4 text-slate-500">{p.domain}</td>
                       <td className="py-2 pr-4">
                         <span className="inline-flex items-center gap-2">
@@ -122,16 +122,16 @@ export default async function GpiDashboardPage() {
                             style={{ backgroundColor: sequentialColor(p.currentGpi / 100) }}
                             aria-hidden="true"
                           />
-                          <span className="tabular-nums text-slate-200">{p.currentGpi}</span>
+                          <span className="tabular-nums text-slate-700 dark:text-slate-200">{p.currentGpi}</span>
                         </span>
                       </td>
                       <td className="py-2">
                         <span
                           className={`inline-flex items-center gap-1 text-xs tabular-nums ${
                             delta > 0.5
-                              ? "text-teal-300"
+                              ? "text-teal-700 dark:text-teal-300"
                               : delta < -0.5
-                                ? "text-amber-300"
+                                ? "text-amber-700 dark:text-amber-300"
                                 : "text-slate-500"
                           }`}
                         >

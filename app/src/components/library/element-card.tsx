@@ -44,7 +44,7 @@ export function ElementCard({
           <CardTitle className="text-sm">{element.name}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col gap-3">
-          <p className="text-sm text-slate-400">{element.pitch}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{element.pitch}</p>
 
           <div className="flex flex-wrap gap-1.5">
             {element.capabilities.map((c) => (
@@ -57,20 +57,20 @@ export function ElementCard({
           {element.toolTags.length > 0 && (
             <div className="flex flex-wrap gap-x-2 gap-y-1">
               {element.toolTags.map((t) => (
-                <span key={t} className="text-[11px] text-slate-600">
+                <span key={t} className="text-[11px] text-slate-400 dark:text-slate-600">
                   {t}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="mt-auto flex items-center gap-2 border-t border-slate-800/60 pt-3">
+          <div className="mt-auto flex items-center gap-2 border-t border-slate-200/70 dark:border-slate-800/60 pt-3">
             {stat && (
-              <span className="inline-flex items-center rounded-full bg-teal-500/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+              <span className="inline-flex items-center rounded-full bg-teal-500/15 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:text-teal-300">
                 {stat}
               </span>
             )}
-            <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition group-hover:text-teal-300">
+            <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition group-hover:text-teal-600 dark:group-hover:text-teal-300">
               Open <ArrowRight className="h-3.5 w-3.5" />
             </span>
           </div>

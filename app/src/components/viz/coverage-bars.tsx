@@ -16,7 +16,9 @@ export function CoverageBars({ report }: { report: CoverageReport }) {
   );
 
   return (
-    <div className="space-y-2">
+    // Chart internals are dark-optimized (validated palette) — in light theme
+    // the chart keeps its own dark panel; in dark theme the panel disappears.
+    <div className="space-y-2 rounded-xl bg-[#0d1424] p-4 dark:bg-transparent dark:p-0">
       {rows.map(([cap, { emphasis, covered, label }]) => {
         const isGap = emphasis > 0 && covered === 0;
         const barColor = isGap ? CHART.status.warning : CHART.series[0];

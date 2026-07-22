@@ -15,7 +15,7 @@ export function SimulatedNote() {
   if (dismissed) return null;
 
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2.5 text-xs text-slate-400">
+    <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-3.5 py-2.5 text-xs text-slate-500 dark:text-slate-400">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden />
       <p className="flex-1 leading-relaxed">
         Simulated telemetry — figures on this page are generated demo data. Wire to live
@@ -25,7 +25,7 @@ export function SimulatedNote() {
         type="button"
         aria-label="Dismiss simulated telemetry note"
         onClick={dismiss}
-        className="rounded p-0.5 text-slate-500 transition hover:text-slate-300"
+        className="rounded p-0.5 text-slate-500 transition hover:text-slate-600 dark:hover:text-slate-300"
       >
         <X className="h-3.5 w-3.5" aria-hidden />
       </button>

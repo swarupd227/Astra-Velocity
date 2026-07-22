@@ -53,32 +53,32 @@ export default async function AdminPage() {
       <WelcomePanel workspace="admin" />
 
       <header>
-        <h1 className="font-display text-3xl text-white">Platform Administration</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">Platform Administration</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Users, AI routing and kill-switches, cost telemetry, and the unified audit trail — every
           change made here is itself audited.
         </p>
       </header>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatTile icon={<Users className="h-4 w-4 text-teal-400" />} label="Users" value={userCount.n} />
+        <StatTile icon={<Users className="h-4 w-4 text-teal-600 dark:text-teal-400" />} label="Users" value={userCount.n} />
         <StatTile
-          icon={<Building2 className="h-4 w-4 text-teal-400" />}
+          icon={<Building2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           label="Workspaces"
           value={workspaceCount.n}
         />
         <StatTile
-          icon={<LibraryBig className="h-4 w-4 text-teal-400" />}
+          icon={<LibraryBig className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           label="Published content items"
           value={publishedCount.n}
         />
         <StatTile
-          icon={<Activity className="h-4 w-4 text-teal-400" />}
+          icon={<Activity className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           label="AI calls — last 7 days"
           value={aiCallCount.n}
         />
         <StatTile
-          icon={<Inbox className="h-4 w-4 text-teal-400" />}
+          icon={<Inbox className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
           label="Pending suggestions"
           value={pendingCount.n}
         />
@@ -87,19 +87,19 @@ export default async function AdminPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <LinkCard
           href="/admin/users"
-          icon={<Users className="h-5 w-5 text-teal-400" />}
+          icon={<Users className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           title="Users & Roles"
           description="Invite users, assign platform roles, and deactivate accounts. Role changes take effect at next sign-in."
         />
         <LinkCard
           href="/admin/ai"
-          icon={<Cpu className="h-5 w-5 text-teal-400" />}
+          icon={<Cpu className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           title="AI Administration"
           description="Model routing per feature, kill-switches, cost and usage telemetry, and the guardrail posture."
         />
         <LinkCard
           href="/admin/audit"
-          icon={<ScrollText className="h-5 w-5 text-teal-400" />}
+          icon={<ScrollText className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           title="Audit Center"
           description="The unified, append-only trail of human, agent, and system actions — plus every AI model call."
         />
@@ -118,10 +118,10 @@ function StatTile({
   value: number;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-4 py-3">
       {icon}
       <div>
-        <p className="text-lg font-semibold leading-tight text-white tabular-nums">{value}</p>
+        <p className="text-lg font-semibold leading-tight text-slate-900 dark:text-white tabular-nums">{value}</p>
         <p className="text-xs text-slate-500">{label}</p>
       </div>
     </div>
@@ -142,14 +142,14 @@ function LinkCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-teal-500/50"
+      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5 transition hover:border-teal-500/50"
     >
       <div className="flex items-center gap-3">
         {icon}
-        <h2 className="text-base font-semibold text-white">{title}</h2>
-        <ArrowRight className="ml-auto h-4 w-4 text-slate-600 transition group-hover:text-teal-400" />
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h2>
+        <ArrowRight className="ml-auto h-4 w-4 text-slate-400 dark:text-slate-600 transition group-hover:text-teal-600 dark:group-hover:text-teal-400" />
       </div>
-      <p className="mt-2 text-sm text-slate-400">{description}</p>
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{description}</p>
     </Link>
   );
 }

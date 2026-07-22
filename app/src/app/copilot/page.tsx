@@ -17,8 +17,8 @@ export default async function CopilotPage() {
 
   return (
     <section>
-      <h1 className="font-display text-3xl text-white">Governance Copilot</h1>
-      <p className="mt-1 max-w-2xl text-sm text-slate-400">
+      <h1 className="font-display text-3xl text-slate-900 dark:text-white">Governance Copilot</h1>
+      <p className="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
         Ask the published library, or hand over a client brief and get a sector × scenario
         engagement shape back. Answers cite their sources; nothing leaves the boundary unredacted.
       </p>
@@ -26,9 +26,9 @@ export default async function CopilotPage() {
         {allowed ? (
           <CopilotWorkbench />
         ) : (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm text-slate-400">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 text-sm text-slate-500 dark:text-slate-400">
             Your current role doesn&apos;t include AI assistance. Switch persona or ask a platform
-            admin to grant <span className="text-slate-200">ai.use</span>.
+            admin to grant <span className="text-slate-700 dark:text-slate-200">ai.use</span>.
           </div>
         )}
       </div>

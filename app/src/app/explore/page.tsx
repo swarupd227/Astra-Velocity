@@ -39,8 +39,8 @@ export default async function ExplorePage({
 
   return (
     <section>
-      <h1 className="font-display text-3xl text-white">Insurance Landscape Explorer</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <h1 className="font-display text-3xl text-slate-900 dark:text-white">Insurance Landscape Explorer</h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Nine sectors, their value chains, and the obligations and KPIs that make governance non-negotiable.
       </p>
 
@@ -55,8 +55,8 @@ export default async function ExplorePage({
               aria-current={active ? "page" : undefined}
               className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
                 active
-                  ? "border-teal-500 bg-teal-500/15 text-teal-300"
-                  : "border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-600 hover:text-white"
+                  ? "border-teal-500 bg-teal-500/15 text-teal-700 dark:text-teal-300"
+                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {s.name}
@@ -70,17 +70,17 @@ export default async function ExplorePage({
         <CardHeader>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <CardTitle className="font-display text-xl">{sector.name}</CardTitle>
-            <span className="text-xs uppercase tracking-wide text-teal-400">{sector.tagline}</span>
+            <span className="text-xs uppercase tracking-wide text-teal-600 dark:text-teal-400">{sector.tagline}</span>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm leading-relaxed text-slate-300">{sector.narrative}</p>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{sector.narrative}</p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Distribution model
               </h3>
-              <p className="mt-1 text-sm text-slate-400">{sector.distributionModel}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{sector.distributionModel}</p>
             </div>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -117,12 +117,12 @@ export default async function ExplorePage({
           </CardHeader>
           <CardContent className="space-y-4">
             {sectorObligations.map((o) => (
-              <div key={o.key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+              <div key={o.key} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-white">{o.name}</h3>
-                  <span className="text-xs text-teal-400">{o.authority}</span>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{o.name}</h3>
+                  <span className="text-xs text-teal-600 dark:text-teal-400">{o.authority}</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                   <span className="font-semibold text-slate-500">Evidence expected: </span>
                   {o.evidenceExpectations[0]}
                 </p>
@@ -148,14 +148,14 @@ export default async function ExplorePage({
           </CardHeader>
           <CardContent className="space-y-4">
             {sectorKpis.map((k) => (
-              <div key={k.key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                <h3 className="text-sm font-semibold text-white">{k.name}</h3>
-                <p className="mt-1 font-mono text-xs text-teal-300">{k.formula}</p>
+              <div key={k.key} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-4">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{k.name}</h3>
+                <p className="mt-1 font-mono text-xs text-teal-700 dark:text-teal-300">{k.formula}</p>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {k.cdeHints.slice(0, 3).map((hint) => (
                     <span
                       key={hint}
-                      className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] text-slate-300"
+                      className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300"
                     >
                       {hint}
                     </span>
@@ -175,8 +175,8 @@ export default async function ExplorePage({
         <CardContent>
           <ul className="grid gap-2 md:grid-cols-2">
             {sector.signaturePainPoints.map((p) => (
-              <li key={p} className="flex gap-2 text-sm text-slate-300">
-                <span className="mt-0.5 shrink-0 text-amber-400">▸</span>
+              <li key={p} className="flex gap-2 text-sm text-slate-600 dark:text-slate-300">
+                <span className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400">▸</span>
                 {p}
               </li>
             ))}

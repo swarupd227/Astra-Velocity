@@ -21,10 +21,10 @@ export default async function StewardPage() {
 
   if (!hasPermission(session.user.role, "steward.workqueue")) {
     return (
-      <section className="mx-auto max-w-xl rounded-2xl border border-slate-800 bg-slate-900/60 p-10 text-center">
-        <ShieldCheck className="mx-auto h-8 w-8 text-slate-600" />
-        <h1 className="mt-3 font-display text-2xl text-white">Steward Command Center</h1>
-        <p className="mt-2 text-sm text-slate-400">
+      <section className="mx-auto max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-10 text-center">
+        <ShieldCheck className="mx-auto h-8 w-8 text-slate-400 dark:text-slate-600" />
+        <h1 className="mt-3 font-display text-2xl text-slate-900 dark:text-white">Steward Command Center</h1>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           The suggestion queue is a steward decision surface — your role ({session.user.role})
           does not carry the steward workqueue permission. Switch to a steward persona in a demo
           workspace, or ask an admin.
@@ -95,12 +95,12 @@ export default async function StewardPage() {
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-white">
+          <h1 className="font-display text-3xl text-slate-900 dark:text-white">
             <Term k="steward">Steward</Term> — My Day
           </h1>
-          <p className="mt-1 text-slate-400">
+          <p className="mt-1 text-slate-500 dark:text-slate-400">
             Agents draft, you decide. Every approval, edit, and rejection lands in the audit log.{" "}
-            <Link href="/agents" className="text-teal-300 hover:text-teal-200">
+            <Link href="/agents" className="text-teal-700 dark:text-teal-300 hover:text-teal-600 dark:hover:text-teal-200">
               Agent Workbench →
             </Link>
           </p>
@@ -126,10 +126,10 @@ export default async function StewardPage() {
 function StatTile({ icon, label, value }: { icon: string; label: string; value: string }) {
   const Icon = icon === "inbox" ? Inbox : icon === "check" ? CheckCheck : ShieldCheck;
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-      <Icon className="h-4 w-4 text-teal-400" />
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 px-4 py-3">
+      <Icon className="h-4 w-4 text-teal-600 dark:text-teal-400" />
       <div>
-        <p className="text-lg font-semibold leading-tight text-white tabular-nums">{value}</p>
+        <p className="text-lg font-semibold leading-tight text-slate-900 dark:text-white tabular-nums">{value}</p>
         <p className="text-xs text-slate-500">{label}</p>
       </div>
     </div>

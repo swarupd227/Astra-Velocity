@@ -56,8 +56,8 @@ export default async function DashboardsPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-3xl text-white">Dashboards</h1>
-        <p className="mt-1 text-slate-400">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">Dashboards</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           Four live dashboards — <Term k="gpi">GPI</Term> portfolio, <Term k="dq">DQ</Term>{" "}
           health, executive value, and the steward queue — run in-app on simulated telemetry; the
           full blueprint catalog below defines what each one needs to go live against client
@@ -72,22 +72,22 @@ export default async function DashboardsPage() {
             <Link
               key={d.key}
               href={d.href}
-              className="group flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-teal-500/50"
+              className="group flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5 transition hover:border-teal-500/50"
             >
               <div className="flex items-center justify-between">
-                <d.icon className="h-5 w-5 text-teal-400" />
+                <d.icon className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                 <Badge variant="accent">Live</Badge>
               </div>
-              <h2 className="mt-3 font-semibold text-white">{d.name}</h2>
-              <p className="mt-1 text-xs text-slate-400">{d.soWhat}</p>
+              <h2 className="mt-3 font-semibold text-slate-900 dark:text-white">{d.name}</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{d.soWhat}</p>
               <div className="mt-3">
                 <MiniPreview kind={d.preview} />
               </div>
-              <span className="mt-auto flex items-center gap-1 pt-3 text-xs font-medium text-teal-300">
+              <span className="mt-auto flex items-center gap-1 pt-3 text-xs font-medium text-teal-700 dark:text-teal-300">
                 Open <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
               </span>
               {spec && (
-                <p className="mt-1 text-[11px] text-slate-600">
+                <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-600">
                   Audience: {spec.audience.slice(0, 2).join(", ")}
                 </p>
               )}
@@ -96,10 +96,10 @@ export default async function DashboardsPage() {
         })}
       </div>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         The live dashboards are fed by the six agent co-workers — see their roster, guardrails,
         and acceptance telemetry in the{" "}
-        <Link href="/agents" className="text-teal-300 hover:text-teal-200">
+        <Link href="/agents" className="text-teal-700 dark:text-teal-300 hover:text-teal-600 dark:hover:text-teal-200">
           Agent Workbench →
         </Link>
       </p>
@@ -162,27 +162,27 @@ function BlueprintSection({
   if (dashboards.length === 0) return null;
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold text-white">{title}</h2>
+      <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">{title}</h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {dashboards.map((d) => (
-          <article key={d.key} className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <article key={d.key} className="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold text-white">{d.name}</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{d.name}</h3>
               {d.builtIn && <Badge variant="accent">Live in-app</Badge>}
             </div>
             <p className="mt-1 text-xs text-slate-500">Audience: {d.audience.join(", ")}</p>
             <div className="mt-3 space-y-2 text-xs">
               <div>
-                <p className="font-medium text-slate-400">Questions answered</p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-slate-400/90">
+                <p className="font-medium text-slate-500 dark:text-slate-400">Questions answered</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-slate-500/90 dark:text-slate-400/90">
                   {d.questionsAnswered.slice(0, 3).map((q) => (
                     <li key={q}>{q}</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <p className="font-medium text-slate-400">Key panels</p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-slate-400/90">
+                <p className="font-medium text-slate-500 dark:text-slate-400">Key panels</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-slate-500/90 dark:text-slate-400/90">
                   {d.kpis.slice(0, 3).map((k) => (
                     <li key={k}>{k}</li>
                   ))}

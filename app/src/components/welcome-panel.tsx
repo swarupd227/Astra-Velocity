@@ -90,20 +90,20 @@ export function WelcomePanel({ workspace }: { workspace: WelcomeKey }) {
         type="button"
         aria-label="Dismiss welcome panel"
         onClick={dismiss}
-        className="absolute right-3 top-3 rounded p-1 text-slate-500 transition hover:text-slate-300"
+        className="absolute right-3 top-3 rounded p-1 text-slate-500 transition hover:text-slate-600 dark:hover:text-slate-300"
       >
         <X className="h-4 w-4" aria-hidden />
       </button>
-      <h2 className="flex items-center gap-2 pr-8 text-sm font-semibold text-teal-300">
+      <h2 className="flex items-center gap-2 pr-8 text-sm font-semibold text-teal-700 dark:text-teal-300">
         <Sparkles className="h-4 w-4 shrink-0" aria-hidden /> {copy.title}
       </h2>
-      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-300">{copy.body}</p>
+      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">{copy.body}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {copy.links.map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-teal-500/50 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/70 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:border-teal-500/50 hover:text-slate-900 dark:hover:text-white"
           >
             {l.label} <ArrowRight className="h-3 w-3" aria-hidden />
           </Link>

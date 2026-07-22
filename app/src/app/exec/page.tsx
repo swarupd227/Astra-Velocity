@@ -44,8 +44,8 @@ export default async function ExecPage() {
       <WelcomePanel workspace="exec" />
 
       <header>
-        <h1 className="font-display text-3xl text-white">Executive Value</h1>
-        <p className="mt-1 text-slate-400">
+        <h1 className="font-display text-3xl text-slate-900 dark:text-white">Executive Value</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           Portfolio <Term k="gpi">GPI</Term> maturity, value narrative, and the 2028 burn-up — at
           a glance.
         </p>
@@ -83,12 +83,12 @@ export default async function ExecPage() {
           <Link
             key={l.href}
             href={l.href}
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-teal-500/50"
+            className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5 transition hover:border-teal-500/50"
           >
-            <l.icon className="h-5 w-5 text-teal-400" />
-            <h2 className="mt-3 font-semibold text-white">{l.title}</h2>
-            <p className="mt-1 text-xs text-slate-400">{l.text}</p>
-            <span className="mt-3 flex items-center gap-1 text-xs font-medium text-teal-300">
+            <l.icon className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+            <h2 className="mt-3 font-semibold text-slate-900 dark:text-white">{l.title}</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{l.text}</p>
+            <span className="mt-3 flex items-center gap-1 text-xs font-medium text-teal-700 dark:text-teal-300">
               Open <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
             </span>
           </Link>
@@ -110,9 +110,9 @@ function Stat({
   detail: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-      <p className="text-3xl font-semibold text-white tabular-nums">{value}</p>
-      <p className="mt-1 text-sm font-medium text-slate-300">{label}</p>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
+      <p className="text-3xl font-semibold text-slate-900 dark:text-white tabular-nums">{value}</p>
+      <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">{label}</p>
       <p className="mt-1 text-xs text-slate-500">{detail}</p>
     </div>
   );
