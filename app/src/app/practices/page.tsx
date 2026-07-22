@@ -1,15 +1,20 @@
 import { contentStore } from "@/content/store";
 import { PracticesHub } from "@/components/practices/practices-hub";
+import { getSectorScope } from "@/lib/workspace-scope";
 
 export const metadata = { title: "Best Practices Hub — Astra Velocity" };
 
 export default async function PracticesPage() {
-  const [practices, sectors, elements, obligations] = await Promise.all([
+  const [practices, allSectors, elements, obligations, scope] = await Promise.all([
     contentStore.bestPractices(),
     contentStore.sectors(),
     contentStore.elements(),
     contentStore.obligations(),
+    getSectorScope(),
   ]);
+
+  // Workspace sector scope: the sector-note selector only offers in-scope sectors.
+  const sectors = allSectors.filter((s) => scope.has(s.key));
 
   return (
     <section>

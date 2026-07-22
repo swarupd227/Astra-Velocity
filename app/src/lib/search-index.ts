@@ -1,5 +1,6 @@
 import { contentStore } from "@/content/store";
 import type { NavGroup } from "@/lib/nav";
+import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
 import { TYPE_LABELS } from "@/components/library/type-labels";
 import type { SearchRow } from "@/components/command-palette";
 
@@ -10,7 +11,7 @@ import type { SearchRow } from "@/components/command-palette";
  * role carries. Row order fixes group order in the palette.
  */
 export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
-  const [elements, packs, bestPractices, obligations, kpis, sectors, scenarios, dashboards] =
+  const [elements, packs, bestPractices, obligations, kpis, sectors, scenarios, dashboards, scope] =
     await Promise.all([
       contentStore.elements(),
       contentStore.packs(),
@@ -20,7 +21,13 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
       contentStore.sectors(),
       contentStore.scenarios(),
       contentStore.dashboards(),
+      getSectorScope(),
     ]);
+
+  // Workspace sector scope: out-of-scope sectors and sector-pinned elements
+  // never surface in the palette. Scenarios are sector-agnostic and stay.
+  const scopedSectors = sectors.filter((s) => scope.has(s.key));
+  const scopedElements = elements.filter((el) => isInSectorScope(el.sectorAffinity, scope));
 
   const packByKey = new Map(packs.map((p) => [p.key, p]));
   const rows: SearchRow[] = [];
@@ -31,7 +38,7 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
     }
   }
 
-  for (const el of elements) {
+  for (const el of scopedElements) {
     const pack = packByKey.get(el.packKey);
     rows.push({
       label: el.name,
@@ -63,7 +70,7 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
     rows.push({ label: kpi.name, sublabel: kpi.formula, href: "/explore", group: "KPIs" });
   }
 
-  for (const s of sectors) {
+  for (const s of scopedSectors) {
     rows.push({
       label: s.name,
       sublabel: s.tagline,

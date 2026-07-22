@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { hasPermission } from "@/lib/roles";
+import { IntegrationNote } from "@/components/integration-note";
 import { CopilotWorkbench } from "@/components/copilot/copilot-workbench";
 
 export const metadata = { title: "Copilot — Astra Velocity" };
@@ -22,6 +23,11 @@ export default async function CopilotPage() {
         Ask the published library, or hand over a client brief and get a sector × scenario
         engagement shape back. Answers cite their sources; nothing leaves the boundary unredacted.
       </p>
+      <IntegrationNote
+        className="mt-5"
+        title="Built for train-the-trainer"
+        body="Stewards practice on the governed library, and every cited answer doubles as teaching material — the curriculum modules (VP-09) use this same surface in enablement labs, so your people leave able to run it without us."
+      />
       <div className="mt-6">
         {allowed ? (
           <CopilotWorkbench />

@@ -2,12 +2,43 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { contentStore } from "@/content/store";
-import { CAPABILITY_LABELS, type Element } from "@/content/types";
+import { CAPABILITY_LABELS, type Artifact, type Element } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IntegrationNote } from "@/components/integration-note";
 import { ArtifactViewer } from "@/components/library/artifact-viewer";
 import { resolveArtifact } from "@/components/library/artifact-stat";
 import { TYPE_LABELS } from "@/components/library/type-labels";
+import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
+
+/**
+ * "Complements, never replaces": per-artifact-kind integration notes that spell
+ * out how this asset deploys into the client's existing stack.
+ */
+const INTEGRATION_NOTES: Partial<
+  Record<Artifact["kind"], { title: string; body: string; chain: string[] }>
+> = {
+  "dq-rules": {
+    title: "Deploys into your stack",
+    body: "These rules compile to your existing DQ engines (Informatica CDQ, dbt tests, warehouse-native SQL) and execute where your data lives; breaches route to your ticketing (ServiceNow, Jira) — nothing replaces your current architecture.",
+    chain: ["Profiling", "Rule authoring here", "Your DQ engine", "Your monitoring / ticketing"],
+  },
+  "cde-set": {
+    title: "Publishes into your catalog",
+    body: "This CDE set publishes into your existing catalog (Informatica CDGC, Collibra, Atlan) via API and is curated there by your stewards — a governed head start, not a parallel catalog.",
+    chain: ["Curated here", "Your catalog (CDGC, Collibra, Atlan)", "Stewardship in your tools"],
+  },
+  glossary: {
+    title: "Publishes into your catalog",
+    body: "These terms publish into your existing catalog (Informatica CDGC, Collibra, Atlan) via API and are curated there — one business vocabulary in the tool your organization already uses, not a parallel catalog.",
+    chain: ["Curated here", "Your catalog (CDGC, Collibra, Atlan)", "Stewardship in your tools"],
+  },
+  code: {
+    title: "Governance-as-code — deploys into your platforms",
+    body: "A CI pipeline deploys these definitions into your platforms — catalog entries, warehouse tags, and access policies land in the tools you already run, versioned and reviewed like any other code.",
+    chain: ["Pull request", "CI validation", "Your catalog / tags / policies"],
+  },
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
@@ -89,9 +120,14 @@ export default async function ElementDetailPage({
   const element = elements.find((el) => el.key === key);
   if (!element) notFound();
 
+  // Workspace sector scope: elements pinned entirely outside scope are hidden.
+  const scope = await getSectorScope();
+  if (!isInSectorScope(element.sectorAffinity, scope)) notFound();
+
   const pack = packs.find((p) => p.key === element.packKey);
   const artifact = resolveArtifact(element);
   const isAgent = element.type === "agent";
+  const integrationNote = artifact ? INTEGRATION_NOTES[artifact.kind] : undefined;
 
   const linkedPractices = element.bestPracticeKeys
     .map((k) => bestPractices.find((bp) => bp.key === k))
@@ -136,6 +172,14 @@ export default async function ElementDetailPage({
         {/* ---------- Main column: the artifact is the star ---------- */}
         <div className="min-w-0 space-y-6">
           {isAgent && element.agentMeta && <AgentContract element={element} />}
+
+          {integrationNote && (
+            <IntegrationNote
+              title={integrationNote.title}
+              body={integrationNote.body}
+              chain={integrationNote.chain}
+            />
+          )}
 
           {artifact ? (
             <Card>

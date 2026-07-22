@@ -4,6 +4,7 @@ import { CAPABILITY_LABELS, SECTOR_KEYS, type SectorKey } from "@/content/types"
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ValueChainRibbon } from "@/components/viz/value-chain-ribbon";
+import { getSectorScope } from "@/lib/workspace-scope";
 
 export const metadata = { title: "Landscape Explorer — Astra Velocity" };
 
@@ -17,18 +18,23 @@ export default async function ExplorePage({
   searchParams: Promise<{ sector?: string }>;
 }) {
   const params = await searchParams;
-  const sectorKey: SectorKey = isSectorKey(params.sector) ? params.sector : "pc-personal";
+  const requestedKey: SectorKey | null = isSectorKey(params.sector) ? params.sector : null;
 
-  const [sectors, obligations, kpis] = await Promise.all([
+  const [sectors, obligations, kpis, scope] = await Promise.all([
     contentStore.sectors(),
     contentStore.obligations(),
     contentStore.kpis(),
+    getSectorScope(),
   ]);
 
-  const orderedSectors = SECTOR_KEYS.map((key) => sectors.find((s) => s.key === key)).filter(
-    (s): s is NonNullable<typeof s> => Boolean(s),
-  );
-  const sector = orderedSectors.find((s) => s.key === sectorKey) ?? orderedSectors[0];
+  // Workspace sector scope narrows the tabs and the default sector.
+  const orderedSectors = SECTOR_KEYS.filter((key) => scope.has(key))
+    .map((key) => sectors.find((s) => s.key === key))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const sector =
+    orderedSectors.find((s) => s.key === requestedKey) ??
+    orderedSectors.find((s) => s.key === "pc-personal") ??
+    orderedSectors[0];
 
   const sectorObligations = sector.obligationKeys
     .map((key) => obligations.find((o) => o.key === key))
@@ -41,7 +47,8 @@ export default async function ExplorePage({
     <section>
       <h1 className="font-display text-3xl text-slate-900 dark:text-white">Insurance Landscape Explorer</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Nine sectors, their value chains, and the obligations and KPIs that make governance non-negotiable.
+        Ground every engagement in the client&apos;s actual value chain — the pain points you
+        select here become the composer&apos;s context.
       </p>
 
       {/* Sector picker */}

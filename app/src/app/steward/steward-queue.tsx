@@ -25,6 +25,16 @@ export interface QueueSuggestion {
   createdAt: string;
 }
 
+/** Where an approval lands in the client's existing stack, by suggestion kind. */
+const DEPLOY_TARGET: Record<string, string> = {
+  "dq-rule": "deploys to your DQ engine",
+  "glossary-term": "publishes to your catalog",
+  classification: "propagates to platform tags & access policy",
+  "lineage-stitch": "documents into your lineage graph",
+  triage: "routes via your ticketing",
+  "drift-flag": "opens review in your catalog",
+};
+
 const KIND_VARIANT: Record<string, "accent" | "highlight" | "outline" | "default" | "success"> = {
   "glossary-term": "accent",
   "dq-rule": "success",
@@ -297,6 +307,13 @@ function SuggestionCard({
               <X className="h-3.5 w-3.5" /> Reject
             </ConfirmButton>
           </div>
+        )}
+        {DEPLOY_TARGET[s.kind] && (
+          <p className="mt-2.5">
+            <span className="inline-flex items-center rounded-full border border-teal-500/30 bg-teal-500/10 px-2 py-0.5 text-[11px] text-teal-700 dark:text-teal-300">
+              → {DEPLOY_TARGET[s.kind]}
+            </span>
+          </p>
         )}
       </div>
     </li>

@@ -1,11 +1,20 @@
 import { contentStore } from "@/content/store";
 import { LibraryBrowser } from "@/components/library/library-browser";
 import { elementStat } from "@/components/library/artifact-stat";
+import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
 
 export const metadata = { title: "Velocity Pack Library — Astra Velocity" };
 
 export default async function LibraryPage() {
-  const [packs, elements] = await Promise.all([contentStore.packs(), contentStore.elements()]);
+  const [packs, allElements, scope] = await Promise.all([
+    contentStore.packs(),
+    contentStore.elements(),
+    getSectorScope(),
+  ]);
+
+  // Workspace sector scope: hide elements pinned entirely to out-of-scope
+  // sectors; broad elements (no sector pins) always stay.
+  const elements = allElements.filter((el) => isInSectorScope(el.sectorAffinity, scope));
 
   // Concrete artifact stats ("24 terms", "18 rules · 3 critical") per element,
   // computed here so the client browser never touches artifact payloads.

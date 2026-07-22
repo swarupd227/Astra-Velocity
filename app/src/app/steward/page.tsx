@@ -8,6 +8,7 @@ import { agentSuggestions } from "@/db/schema";
 import { contentStore } from "@/content/store";
 import { hasPermission } from "@/lib/roles";
 import { getWorkspaceForUser } from "@/sim/context";
+import { IntegrationNote } from "@/components/integration-note";
 import { SimulatedNote } from "@/components/simulated-note";
 import { Term } from "@/components/term";
 import { WelcomePanel } from "@/components/welcome-panel";
@@ -115,6 +116,12 @@ export default async function StewardPage() {
           />
         </div>
       </header>
+
+      <IntegrationNote
+        title="Approved suggestions deploy downstream"
+        body="A governance-as-code pipeline ships approved rules to your DQ engine and approved terms and classifications to your catalog and policy tools. Supervised here, executed in your stack."
+        chain={["Agent drafts", "Steward decision here", "Your DQ engine / catalog / policy tools"]}
+      />
 
       <StewardQueue suggestions={suggestions} agents={agents} />
 

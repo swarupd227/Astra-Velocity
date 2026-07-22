@@ -4,6 +4,7 @@ import { SECTOR_KEYS, type SectorKey } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmphasisRadar } from "@/components/viz/emphasis-radar";
+import { getSectorScope } from "@/lib/workspace-scope";
 
 export const metadata = { title: "Scenario Catalog — Astra Velocity" };
 
@@ -19,13 +20,15 @@ export default async function ScenariosPage({
   const params = await searchParams;
   const sectorKey: SectorKey | null = isSectorKey(params.sector) ? params.sector : null;
 
-  const [scenarios, sectors] = await Promise.all([
+  const [scenarios, sectors, scope] = await Promise.all([
     contentStore.scenarios(),
     contentStore.sectors(),
+    getSectorScope(),
   ]);
-  const orderedSectors = SECTOR_KEYS.map((key) => sectors.find((s) => s.key === key)).filter(
-    (s): s is NonNullable<typeof s> => Boolean(s),
-  );
+  // Workspace sector scope narrows the filter options (and thus sector notes).
+  const orderedSectors = SECTOR_KEYS.filter((key) => scope.has(key))
+    .map((key) => sectors.find((s) => s.key === key))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
   const activeSector = sectorKey ? orderedSectors.find((s) => s.key === sectorKey) ?? null : null;
 
   return (

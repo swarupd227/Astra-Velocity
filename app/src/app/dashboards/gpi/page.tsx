@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowDownRight, ArrowLeft, ArrowUpRight, Minus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { IntegrationNote } from "@/components/integration-note";
 import { SimulatedNote } from "@/components/simulated-note";
 import { Term } from "@/components/term";
 import { BurnUp } from "@/components/viz/burn-up";
@@ -18,6 +19,14 @@ export default async function GpiDashboardPage() {
   const { portfolio } = ctx.sim;
 
   const products = [...portfolio.products].sort((a, b) => b.currentGpi - a.currentGpi);
+
+  // Scale mechanics: products per wave from the sim portfolio, plus what remains
+  // of the full portfolio beyond the currently tracked products.
+  const waveCounts = ([1, 2, 3] as const).map((w) => ({
+    wave: w,
+    n: portfolio.products.filter((p) => p.wave === w).length,
+  }));
+  const remainingPortfolio = Math.max(portfolio.burnUpTarget - portfolio.products.length, 0);
 
   return (
     <div className="space-y-6">
@@ -37,6 +46,11 @@ export default async function GpiDashboardPage() {
           products by Q4-28 — and which products are stalling?
         </p>
       </header>
+
+      <IntegrationNote
+        title={`The path to ${portfolio.burnUpTarget}`}
+        body="Scale is wave-based: governance patterns proven in early products compound, and each system archetype solved once makes every later product on that archetype cheaper to govern. Waves 1–2 buy the patterns; the rest of the portfolio rides them."
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -79,6 +93,34 @@ export default async function GpiDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Scale mechanics</CardTitle>
+          <CardDescription>How a {portfolio.products.length}-product beachhead becomes a {portfolio.burnUpTarget}-product portfolio</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="flex flex-wrap items-center gap-y-1.5">
+            {waveCounts.map(({ wave, n }) => (
+              <span key={wave} className="flex items-center">
+                <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs text-teal-800 dark:text-teal-200">
+                  Wave {wave}: <span className="font-semibold tabular-nums">{n}</span> products
+                </span>
+                <span className="mx-1.5 text-slate-400 dark:text-slate-600" aria-hidden>
+                  →
+                </span>
+              </span>
+            ))}
+            <span className="rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/60 px-3 py-1 text-xs text-slate-600 dark:text-slate-300">
+              Remaining portfolio: <span className="font-semibold tabular-nums">{remainingPortfolio}</span>
+            </span>
+          </p>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            Each wave reuses the prior wave&apos;s patterns via governance-as-code — that
+            compounding is what reaches {portfolio.burnUpTarget} by Q4-28.
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

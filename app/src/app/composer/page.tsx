@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Term } from "@/components/term";
 import { WelcomePanel } from "@/components/welcome-panel";
+import { getSectorScope } from "@/lib/workspace-scope";
 import { ComposerCanvas } from "./composer-canvas";
 
 export const metadata = { title: "Composer — Astra Velocity" };
@@ -27,11 +28,14 @@ export default async function ComposerPage({
   const sectorParam = typeof sp.sector === "string" ? sp.sector : undefined;
   const scenarioParam = typeof sp.scenario === "string" ? sp.scenario : undefined;
 
-  const [sectors, scenarios] = await Promise.all([
+  const [sectors, scenarios, scope] = await Promise.all([
     contentStore.sectors(),
     contentStore.scenarios(),
+    getSectorScope(),
   ]);
-  const sector = sectors.find((s) => s.key === sectorParam);
+  // Workspace sector scope: only in-scope sectors are selectable (or linkable).
+  const scopedSectors = sectors.filter((s) => scope.has(s.key));
+  const sector = scopedSectors.find((s) => s.key === sectorParam);
   const scenario = scenarios.find((s) => s.key === scenarioParam);
 
   // ---------- Selection step ----------
@@ -55,7 +59,7 @@ export default async function ComposerPage({
             {sector && <span className="text-sm text-teal-700 dark:text-teal-300">{sector.name}</span>}
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {sectors.map((s) => {
+            {scopedSectors.map((s) => {
               const active = s.key === sector?.key;
               return (
                 <Link
