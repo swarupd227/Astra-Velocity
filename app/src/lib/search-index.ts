@@ -1,0 +1,89 @@
+import { contentStore } from "@/content/store";
+import type { NavGroup } from "@/lib/nav";
+import { TYPE_LABELS } from "@/components/library/type-labels";
+import type { SearchRow } from "@/components/command-palette";
+
+/**
+ * Compact searchable index for the command palette, built server-side in the
+ * app shell. Nav rows come from the caller already filtered by persona and
+ * real-role permissions; content rows all sit behind library.read, which every
+ * role carries. Row order fixes group order in the palette.
+ */
+export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
+  const [elements, packs, bestPractices, obligations, kpis, sectors, scenarios, dashboards] =
+    await Promise.all([
+      contentStore.elements(),
+      contentStore.packs(),
+      contentStore.bestPractices(),
+      contentStore.obligations(),
+      contentStore.kpis(),
+      contentStore.sectors(),
+      contentStore.scenarios(),
+      contentStore.dashboards(),
+    ]);
+
+  const packByKey = new Map(packs.map((p) => [p.key, p]));
+  const rows: SearchRow[] = [];
+
+  for (const group of nav) {
+    for (const item of group.items) {
+      rows.push({ label: item.label, sublabel: group.title, href: item.href, group: "Navigate" });
+    }
+  }
+
+  for (const el of elements) {
+    const pack = packByKey.get(el.packKey);
+    rows.push({
+      label: el.name,
+      sublabel: [pack?.code, TYPE_LABELS[el.type]].filter(Boolean).join(" · "),
+      href: `/library/${el.key}`,
+      group: "Library elements",
+    });
+  }
+
+  for (const bp of bestPractices) {
+    rows.push({
+      label: bp.title,
+      sublabel: bp.statement,
+      href: "/practices",
+      group: "Best practices",
+    });
+  }
+
+  for (const o of obligations) {
+    rows.push({
+      label: o.name,
+      sublabel: `${o.authority} · ${o.jurisdiction}`,
+      href: "/explore",
+      group: "Obligations",
+    });
+  }
+
+  for (const kpi of kpis) {
+    rows.push({ label: kpi.name, sublabel: kpi.formula, href: "/explore", group: "KPIs" });
+  }
+
+  for (const s of sectors) {
+    rows.push({
+      label: s.name,
+      sublabel: s.tagline,
+      href: `/explore?sector=${s.key}`,
+      group: "Sectors",
+    });
+  }
+
+  for (const sc of scenarios) {
+    rows.push({ label: sc.name, sublabel: sc.tagline, href: "/scenarios", group: "Scenarios" });
+  }
+
+  for (const d of dashboards) {
+    rows.push({
+      label: d.name,
+      sublabel: `Dashboard blueprint · ${d.audience[0] ?? ""}`,
+      href: "/dashboards",
+      group: "Dashboards",
+    });
+  }
+
+  return rows;
+}

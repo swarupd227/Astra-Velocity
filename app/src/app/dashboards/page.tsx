@@ -4,6 +4,7 @@ import { ArrowRight, Gauge, HeartPulse, ShieldCheck, TrendingUp } from "lucide-r
 import { auth } from "@/auth";
 import { contentStore } from "@/content/store";
 import { Badge } from "@/components/ui/badge";
+import { Term } from "@/components/term";
 import { CHART } from "@/components/viz/tokens";
 
 export const metadata = { title: "Dashboards — Astra Velocity" };
@@ -57,8 +58,10 @@ export default async function DashboardsPage() {
       <header>
         <h1 className="font-display text-3xl text-white">Dashboards</h1>
         <p className="mt-1 text-slate-400">
-          Four live dashboards run in-app on simulated telemetry; the full blueprint catalog below
-          defines what each one needs to go live against client tooling.
+          Four live dashboards — <Term k="gpi">GPI</Term> portfolio, <Term k="dq">DQ</Term>{" "}
+          health, executive value, and the steward queue — run in-app on simulated telemetry; the
+          full blueprint catalog below defines what each one needs to go live against client
+          tooling.
         </p>
       </header>
 

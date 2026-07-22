@@ -87,9 +87,9 @@ export default async function StudioItemPage({
       <header>
         <Link
           href="/studio"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-teal-300"
+          className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
         >
-          <ArrowLeft className="h-3 w-3" /> Library Studio
+          <ArrowLeft className="h-4 w-4" /> Studio
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="font-display text-3xl text-white">{name}</h1>

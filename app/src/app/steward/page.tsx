@@ -8,6 +8,9 @@ import { agentSuggestions } from "@/db/schema";
 import { contentStore } from "@/content/store";
 import { hasPermission } from "@/lib/roles";
 import { getWorkspaceForUser } from "@/sim/context";
+import { SimulatedNote } from "@/components/simulated-note";
+import { Term } from "@/components/term";
+import { WelcomePanel } from "@/components/welcome-panel";
 import { StewardQueue, type QueueAgent, type QueueSuggestion } from "./steward-queue";
 
 export const metadata = { title: "Steward My Day — Astra Velocity" };
@@ -88,9 +91,13 @@ export default async function StewardPage() {
 
   return (
     <div className="space-y-6">
+      <WelcomePanel workspace="steward" />
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-white">Steward — My Day</h1>
+          <h1 className="font-display text-3xl text-white">
+            <Term k="steward">Steward</Term> — My Day
+          </h1>
           <p className="mt-1 text-slate-400">
             Agents draft, you decide. Every approval, edit, and rejection lands in the audit log.{" "}
             <Link href="/agents" className="text-teal-300 hover:text-teal-200">
@@ -111,9 +118,7 @@ export default async function StewardPage() {
 
       <StewardQueue suggestions={suggestions} agents={agents} />
 
-      <p className="text-xs text-slate-600">
-        Simulated telemetry — wire to live governance tooling via the API.
-      </p>
+      <SimulatedNote />
     </div>
   );
 }

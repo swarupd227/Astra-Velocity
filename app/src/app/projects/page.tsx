@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { contentStore } from "@/content/store";
 import { listProjectsForUser } from "@/lib/projects";
 import { Badge } from "@/components/ui/badge";
+import { WelcomePanel } from "@/components/welcome-panel";
 
 export const metadata = { title: "Projects — Astra Velocity" };
 
@@ -34,6 +35,8 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-6">
+      <WelcomePanel workspace="projects" />
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl text-white">Projects</h1>

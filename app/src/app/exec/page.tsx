@@ -2,6 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Blocks, Gauge, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SimulatedNote } from "@/components/simulated-note";
+import { Term } from "@/components/term";
+import { WelcomePanel } from "@/components/welcome-panel";
 import { BurnUp } from "@/components/viz/burn-up";
 import { getSimForCurrentUser } from "@/sim/context";
 
@@ -38,10 +41,13 @@ export default async function ExecPage() {
 
   return (
     <div className="space-y-6">
+      <WelcomePanel workspace="exec" />
+
       <header>
         <h1 className="font-display text-3xl text-white">Executive Value</h1>
         <p className="mt-1 text-slate-400">
-          Portfolio maturity, value narrative, and the 2028 burn-up — at a glance.
+          Portfolio <Term k="gpi">GPI</Term> maturity, value narrative, and the 2028 burn-up — at
+          a glance.
         </p>
       </header>
 
@@ -49,7 +55,15 @@ export default async function ExecPage() {
         <Stat value={String(lastActual)} label="Products governed today" detail={`of ${portfolio.burnUpTarget} planned by Q4-28`} />
         <Stat value={String(value.incidentsAvoided)} label="Incidents avoided" detail="on filing- and close-critical reports" />
         <Stat value={`−${cycleDelta}d`} label="Access cycle time" detail={`${value.accessCycleDaysStart}d → ${value.accessCycleDaysNow}d`} />
-        <Stat value={String(value.stewardWeeksSaved)} label="Steward-weeks saved" detail="vs. the manual baseline" />
+        <Stat
+          value={String(value.stewardWeeksSaved)}
+          label={
+            <>
+              <Term k="steward">Steward</Term>-weeks saved
+            </>
+          }
+          detail="vs. the manual baseline"
+        />
       </div>
 
       <Card>
@@ -81,14 +95,20 @@ export default async function ExecPage() {
         ))}
       </div>
 
-      <p className="text-xs text-slate-600">
-        Simulated telemetry — wire to live governance tooling via the API.
-      </p>
+      <SimulatedNote />
     </div>
   );
 }
 
-function Stat({ value, label, detail }: { value: string; label: string; detail: string }) {
+function Stat({
+  value,
+  label,
+  detail,
+}: {
+  value: string;
+  label: React.ReactNode;
+  detail: string;
+}) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
       <p className="text-3xl font-semibold text-white tabular-nums">{value}</p>

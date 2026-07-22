@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Clock3, OctagonAlert, TriangleAlert } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock3, OctagonAlert, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SimulatedNote } from "@/components/simulated-note";
+import { Term } from "@/components/term";
 import { StatBars } from "@/components/viz/stat-bars";
 import { CHART } from "@/components/viz/tokens";
 import { getSimForCurrentUser } from "@/sim/context";
@@ -22,8 +25,17 @@ export default async function DqDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/dashboards"
+        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" /> Dashboards
+      </Link>
+
       <header>
-        <h1 className="font-display text-3xl text-white">DQ Health</h1>
+        <h1 className="font-display text-3xl text-white">
+          <Term k="dq">DQ</Term> Health
+        </h1>
         <p className="mt-1 text-slate-400">
           So what: which breaches threaten filing-critical report inputs, who owns them, and are
           they aging past SLA?
@@ -165,9 +177,7 @@ export default async function DqDashboardPage() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-slate-600">
-        Simulated telemetry — wire to live governance tooling via the API.
-      </p>
+      <SimulatedNote />
     </div>
   );
 }

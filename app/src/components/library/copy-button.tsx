@@ -3,8 +3,14 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
-/** Copy-to-clipboard for code artifacts. */
-export function CopyButton({ text }: { text: string }) {
+/** Copy-to-clipboard for code artifacts, passwords, and other one-liners. */
+export function CopyButton({
+  text,
+  ariaLabel = "Copy to clipboard",
+}: {
+  text: string;
+  ariaLabel?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -16,7 +22,7 @@ export function CopyButton({ text }: { text: string }) {
         setTimeout(() => setCopied(false), 2000);
       }}
       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
-      aria-label="Copy snippet to clipboard"
+      aria-label={ariaLabel}
     >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-emerald-400" aria-hidden />

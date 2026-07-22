@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { count, eq } from "drizzle-orm";
-import { Clock3, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
+import { ArrowLeft, Clock3, ShieldCheck, Sparkles, TrendingDown } from "lucide-react";
 import { db } from "@/db/client";
 import { agentSuggestions } from "@/db/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SimulatedNote } from "@/components/simulated-note";
 import { TwoLineChart } from "@/components/viz/two-line";
 import { getSimForCurrentUser } from "@/sim/context";
 
@@ -33,6 +35,13 @@ export default async function ValueDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/dashboards"
+        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" /> Dashboards
+      </Link>
+
       <header>
         <h1 className="font-display text-3xl text-white">Executive Value</h1>
         <p className="mt-1 text-slate-400">
@@ -96,9 +105,7 @@ export default async function ValueDashboardPage() {
         funds the next wave of governed products without new headcount.
       </p>
 
-      <p className="text-xs text-slate-600">
-        Simulated telemetry — wire to live governance tooling via the API.
-      </p>
+      <SimulatedNote />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { AccessDenied } from "@/components/access-denied";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { WelcomePanel } from "@/components/welcome-panel";
 import { KIND_LABELS, payloadName } from "./kind-schemas";
 
 export const metadata = { title: "Library Studio — Astra Velocity" };
@@ -119,6 +120,8 @@ export default async function StudioPage({
 
   return (
     <div className="space-y-8">
+      <WelcomePanel workspace="studio" />
+
       <header>
         <h1 className="flex items-center gap-3 font-display text-3xl text-white">
           <LibraryBig className="h-7 w-7 text-teal-400" /> Library Studio

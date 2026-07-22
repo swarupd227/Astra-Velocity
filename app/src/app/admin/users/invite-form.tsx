@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { KeyRound, UserPlus } from "lucide-react";
+import { CopyButton } from "@/components/library/copy-button";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
@@ -41,11 +42,12 @@ export function InviteUserForm() {
           <p className="flex items-center gap-2 font-semibold text-teal-300">
             <KeyRound className="h-4 w-4" /> Account created for {state.email}
           </p>
-          <p className="mt-1 text-slate-300">
-            Temporary password (shown once, not retrievable later):{" "}
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-slate-300">
+            <span>Temporary password (shown once, not retrievable later):</span>
             <code className="rounded bg-slate-950 px-2 py-0.5 font-mono text-teal-200">
               {state.tempPassword}
             </code>
+            <CopyButton text={state.tempPassword} ariaLabel="Copy temporary password" />
           </p>
         </div>
       )}

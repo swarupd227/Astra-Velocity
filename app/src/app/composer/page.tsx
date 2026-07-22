@@ -7,6 +7,8 @@ import {
   type EngineContext,
 } from "@/engine/recommend";
 import { Badge } from "@/components/ui/badge";
+import { Term } from "@/components/term";
+import { WelcomePanel } from "@/components/welcome-panel";
 import { ComposerCanvas } from "./composer-canvas";
 
 export const metadata = { title: "Composer — Astra Velocity" };
@@ -36,11 +38,14 @@ export default async function ComposerPage({
   if (!sector || !scenario) {
     return (
       <div className="space-y-8">
+        <WelcomePanel workspace="composer" />
+
         <header>
           <h1 className="font-display text-3xl text-white">Project Composer</h1>
           <p className="mt-1 max-w-2xl text-slate-400">
-            Pick the client&apos;s sector, then the engagement scenario. The engine composes a
-            Velocity Pack — every element justified by best practices and obligations.
+            Pick the client&apos;s sector, then the engagement scenario. The engine composes a{" "}
+            <Term k="velocity-pack">Velocity Pack</Term> — every element justified by best
+            practices and <Term k="obligation">obligations</Term>.
           </p>
         </header>
 

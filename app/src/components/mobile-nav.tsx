@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { visibleNavGroups } from "@/lib/nav";
-import { ROLE_HOMES, ROLE_LABELS, type Role } from "@/lib/roles";
+import { personaHome, visibleNavGroups } from "@/lib/nav";
+import { ROLE_LABELS, type Role } from "@/lib/roles";
 
 /**
  * Mobile navigation: hamburger in the top bar (below md) opening a slide-over
@@ -64,7 +64,7 @@ export function MobileNav({
           >
             <div className="flex items-start justify-between px-5 pb-4 pt-5">
               <Link
-                href={ROLE_HOMES[persona]}
+                href={personaHome(persona, role)}
                 onClick={() => setOpen(false)}
                 className="flex flex-col gap-0.5"
               >

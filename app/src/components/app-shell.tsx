@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import { getActivePersona, switchPersona } from "@/lib/persona";
-import { visibleNavGroups } from "@/lib/nav";
-import { assumablePersonas, ROLE_HOMES, ROLE_LABELS, type Role } from "@/lib/roles";
+import { personaHome, visibleNavGroups } from "@/lib/nav";
+import { buildSearchIndex } from "@/lib/search-index";
+import { assumablePersonas, ROLE_LABELS, type Role } from "@/lib/roles";
+import { CommandPalette } from "@/components/command-palette";
 import { MobileNav } from "@/components/mobile-nav";
 import { RoleSwitcher } from "@/components/role-switcher";
 
@@ -31,12 +33,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const visibleGroups = visibleNavGroups(persona, role);
+  const home = personaHome(persona, role);
+  const searchRows = await buildSearchIndex(visibleGroups);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-60 flex-col border-r border-slate-800 bg-slate-950 md:flex">
-        <Link href={ROLE_HOMES[persona]} className="flex flex-col gap-0.5 px-5 pb-4 pt-5">
+        <Link href={home} className="flex flex-col gap-0.5 px-5 pb-4 pt-5">
           <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-teal-400">
             Artizent
           </span>
@@ -80,7 +84,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <MobileNav persona={persona} role={role} userName={session.user.name ?? ""} />
               {/* Brand shows in the top bar only when the sidebar is hidden (small screens) */}
               <Link
-                href={ROLE_HOMES[persona]}
+                href={home}
                 className="flex items-baseline gap-2 truncate md:invisible"
               >
                 <span className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-400">
@@ -90,6 +94,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
             <div className="flex shrink-0 items-center gap-3">
+              <CommandPalette rows={searchRows} />
               <RoleSwitcher active={persona} options={options} onSwitch={doSwitch} />
               <form action={doSignOut}>
                 <button

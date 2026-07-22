@@ -14,7 +14,7 @@ import {
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
-import { hasPermission, type Permission, type Role } from "@/lib/roles";
+import { hasPermission, ROLE_HOMES, type Permission, type Role } from "@/lib/roles";
 
 /**
  * Primary navigation config, shared by the desktop sidebar (server) and the
@@ -140,4 +140,18 @@ export function visibleNavGroups(persona: Role, role: Role): NavGroup[] {
       (item) => item.personas.includes(persona) && hasPermission(role, item.permission),
     ),
   })).filter((group) => group.items.length > 0);
+}
+
+/**
+ * Landing page for a persona that the REAL role can actually open: the
+ * persona's natural home when permitted, otherwise the first visible nav item.
+ * Keeps the persona switcher and the brand link from dead-ending on
+ * AccessDenied (e.g. a pursuit lead assuming the executive lens, whose home
+ * /exec needs dashboards.executive).
+ */
+export function personaHome(persona: Role, role: Role): string {
+  const items = visibleNavGroups(persona, role).flatMap((group) => group.items);
+  const home = ROLE_HOMES[persona];
+  if (items.some((item) => item.href === home)) return home;
+  return items[0]?.href ?? "/";
 }

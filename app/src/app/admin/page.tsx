@@ -16,6 +16,7 @@ import { db } from "@/db/client";
 import { agentSuggestions, aiCalls, contentItems, users, workspaces } from "@/db/schema";
 import { hasPermission } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
+import { WelcomePanel } from "@/components/welcome-panel";
 
 export const metadata = { title: "Admin — Astra Velocity" };
 
@@ -49,6 +50,8 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <WelcomePanel workspace="admin" />
+
       <header>
         <h1 className="font-display text-3xl text-white">Platform Administration</h1>
         <p className="mt-1 text-sm text-slate-400">

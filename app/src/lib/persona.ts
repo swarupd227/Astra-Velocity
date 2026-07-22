@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { auditLog } from "@/db/schema";
-import { assumablePersonas, ROLE_HOMES, ROLES, type Role } from "@/lib/roles";
+import { personaHome } from "@/lib/nav";
+import { assumablePersonas, ROLES, type Role } from "@/lib/roles";
 
 const PERSONA_COOKIE = "astra-persona";
 
@@ -48,5 +49,7 @@ export async function switchPersona(persona: Role): Promise<void> {
     detail: { from: session.user.role, to: persona },
   });
 
-  redirect(ROLE_HOMES[persona] ?? "/");
+  // Land on a page the REAL role can open — the persona's home may sit behind
+  // a permission the underlying role does not carry.
+  redirect(personaHome(persona, session.user.role));
 }

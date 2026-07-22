@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowLeft, ArrowUpRight, Minus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SimulatedNote } from "@/components/simulated-note";
+import { Term } from "@/components/term";
 import { BurnUp } from "@/components/viz/burn-up";
 import { StatBars } from "@/components/viz/stat-bars";
 import { sequentialColor } from "@/components/viz/tokens";
@@ -18,8 +21,17 @@ export default async function GpiDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/dashboards"
+        className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" /> Dashboards
+      </Link>
+
       <header>
-        <h1 className="font-display text-3xl text-white">GPI Portfolio</h1>
+        <h1 className="font-display text-3xl text-white">
+          <Term k="gpi">GPI</Term> Portfolio
+        </h1>
         <p className="mt-1 text-slate-400">
           So what: is the portfolio on trajectory to {portfolio.burnUpTarget} governed data
           products by Q4-28 — and which products are stalling?
@@ -142,9 +154,7 @@ export default async function GpiDashboardPage() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-slate-600">
-        Simulated telemetry — wire to live governance tooling via the API.
-      </p>
+      <SimulatedNote />
     </div>
   );
 }
