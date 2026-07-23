@@ -60,6 +60,11 @@ REDIS_KEY="$(az redis list-keys -g "$RG" -n "$REDIS" --query primaryKey -o tsv)"
 REDIS_URL="rediss://:${REDIS_KEY}@${REDIS}.redis.cache.windows.net:6380"
 
 # ---- 6. Migrations + seed (run from this machine against Azure PG) ----------
+# First-time only: DATABASE_URL/AUTH_SECRET are already in scope from this
+# same script run. For every LATER migration/reseed (a new shell, a new
+# Cloud Shell session, someone else running it) use deploy/azure-migrate.sh
+# instead — it pulls both values back out of the already-deployed astra-web
+# Container App's own secrets, so nothing needs to be typed in or remembered.
 # NOTE: app/.env.local overrides env vars (dotenv override:true) — park it first.
 cd app
 [ -f .env.local ] && mv .env.local .env.local.bak
@@ -107,6 +112,13 @@ echo "Health check: https://${FQDN}/api/health"
 echo "============================================================"
 
 # ---- Redeploy after code changes ---------------------------------------------
-# az acr build -r $ACR -t astra-velocity-web:v2 --target web ./app
-# az containerapp update -g $RG -n astra-web --image $ACR_SERVER/astra-velocity-web:v2
-# (same pattern for the worker; bump the tag each time)
+# 1) rebuild + roll the image forward (bump the tag every time):
+#      az acr build -r $ACR -t astra-velocity-web:v2 --target web ./app
+#      az containerapp update -g $RG -n astra-web --image $ACR_SERVER/astra-velocity-web:v2 --revision-suffix v2-live
+#      (same pattern for the worker when a change touches it)
+# 2) if the change includes a schema migration or new/changed content, apply it —
+#    from ANY shell, no DATABASE_URL/AUTH_SECRET needed, it reads them off the
+#    already-deployed astra-web app's own secrets:
+#      bash deploy/azure-migrate.sh
+# 3) verify: az containerapp revision list -g $RG -n astra-web -o table
+#      --query "[].{name:name,state:properties.runningState,traffic:properties.trafficWeight}"
