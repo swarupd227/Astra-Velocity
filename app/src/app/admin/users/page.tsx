@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { asc } from "drizzle-orm";
+import { asc, count } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
-import { users } from "@/db/schema";
+import { projects, users } from "@/db/schema";
 import { hasPermission, ROLE_LABELS, ROLES } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Select } from "@/components/ui/input";
-import { setUserActiveAction, updateUserRoleAction } from "./actions";
+import { TypeToConfirm } from "@/components/ui/type-to-confirm";
+import { deleteUserAction, setUserActiveAction, updateUserRoleAction } from "./actions";
 import { InviteUserForm } from "./invite-form";
 
 export const metadata = { title: "Users & Roles — Astra Velocity" };
@@ -19,6 +20,10 @@ export const metadata = { title: "Users & Roles — Astra Velocity" };
 const ERROR_MESSAGES: Record<string, string> = {
   "self-demote": "You cannot remove your own platform administrator role.",
   "self-deactivate": "You cannot deactivate your own account.",
+  "self-delete": "You cannot permanently delete your own account.",
+  "last-admin": "You cannot delete the last remaining platform administrator account.",
+  "has-projects":
+    "Can't delete — this user created one or more projects. Reassign or delete those projects first, then try again.",
   "not-found": "That user no longer exists.",
 };
 
@@ -47,7 +52,12 @@ export default async function AdminUsersPage({
   }
 
   const { error } = await searchParams;
-  const rows = await db.select().from(users).orderBy(asc(users.createdAt));
+  const [rows, projectCounts] = await Promise.all([
+    db.select().from(users).orderBy(asc(users.createdAt)),
+    db.select({ createdBy: projects.createdBy, n: count() }).from(projects).groupBy(projects.createdBy),
+  ]);
+  const projectCountByUser = new Map(projectCounts.map((r) => [r.createdBy, r.n]));
+  const platformAdminCount = rows.filter((u) => u.role === "platform_admin").length;
 
   return (
     <div className="space-y-6">
@@ -83,11 +93,14 @@ export default async function AdminUsersPage({
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Created</th>
               <th className="px-4 py-3 font-medium">Account</th>
+              <th className="px-4 py-3 font-medium">Permanent delete</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((u) => {
               const isSelf = u.id === session.user.id;
+              const isLastAdmin = u.role === "platform_admin" && platformAdminCount <= 1;
+              const projectCount = projectCountByUser.get(u.id) ?? 0;
               return (
                 <tr key={u.id} className="border-b border-slate-200/70 dark:border-slate-800/60 last:border-0">
                   <td className="px-4 py-3 text-slate-900 dark:text-white">
@@ -164,6 +177,40 @@ export default async function AdminUsersPage({
                         </SubmitButton>
                       )}
                     </ActionForm>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isSelf || isLastAdmin ? (
+                      <span
+                        className="text-xs text-slate-400 dark:text-slate-600"
+                        title={
+                          isSelf
+                            ? "You cannot permanently delete your own account"
+                            : "This is the last remaining platform administrator — it cannot be deleted"
+                        }
+                      >
+                        Not deletable
+                      </span>
+                    ) : (
+                      <ActionForm
+                        action={deleteUserAction}
+                        error="Could not delete the account — please try again."
+                      >
+                        <input type="hidden" name="userId" value={u.id} />
+                        <TypeToConfirm
+                          confirmText={u.email}
+                          triggerLabel="Delete"
+                          destroyLabel="Delete permanently"
+                          description={`This permanently deletes ${u.email} and cannot be undone.`}
+                          consequences={
+                            projectCount > 0
+                              ? [
+                                  `${projectCount} project${projectCount === 1 ? "" : "s"} created by this user — deletion will be blocked until those are reassigned or deleted`,
+                                ]
+                              : []
+                          }
+                        />
+                      </ActionForm>
+                    )}
                   </td>
                 </tr>
               );

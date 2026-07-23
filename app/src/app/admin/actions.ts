@@ -5,9 +5,9 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { aiSettings, auditLog, workspaces } from "@/db/schema";
-import { SECTOR_KEYS, type SectorKey } from "@/content/types";
+import { PLATFORM_KEYS, SECTOR_KEYS, type PlatformKey, type SectorKey } from "@/content/types";
 import { requirePermission } from "@/lib/require-permission";
-import { scopeSettingKey } from "@/lib/workspace-scope";
+import { platformScopeSettingKey, scopeSettingKey } from "@/lib/workspace-scope";
 
 /**
  * Platform administration actions. Workspace sector scope lives in the
@@ -63,4 +63,51 @@ export async function saveWorkspaceScopeAction(formData: FormData): Promise<void
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/workspaces");
+  revalidatePath(`/admin/workspaces/${workspace.id}`);
+}
+
+/**
+ * Save a workspace's default technology & platform stack scope — same
+ * mechanism as sector scope, stored under `workspace-platform-scope.<slug>`.
+ * Audited as "admin.workspace.scope" (same action family as sector scope).
+ */
+export async function savePlatformScopeAction(formData: FormData): Promise<void> {
+  const admin = await requirePermission("admin.platform");
+  const slug = SlugSchema.parse(formData.get("slug"));
+
+  const [workspace] = await db
+    .select({ id: workspaces.id, slug: workspaces.slug })
+    .from(workspaces)
+    .where(eq(workspaces.slug, slug))
+    .limit(1);
+  if (!workspace) throw new Error(`Unknown workspace: ${slug}`);
+
+  const selected = formData
+    .getAll("platforms")
+    .map(String)
+    .filter((p): p is PlatformKey => PLATFORM_KEYS.includes(p as PlatformKey));
+
+  const value: PlatformKey[] = selected.length >= PLATFORM_KEYS.length ? [] : selected;
+
+  const key = platformScopeSettingKey(workspace.slug);
+  await db
+    .insert(aiSettings)
+    .values({ key, value, updatedBy: admin.id, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: aiSettings.key,
+      set: { value, updatedBy: admin.id, updatedAt: new Date() },
+    });
+
+  await db.insert(auditLog).values({
+    actorType: "human",
+    actorId: admin.id,
+    action: "admin.workspace.scope",
+    entityType: "workspace",
+    entityId: workspace.slug,
+    workspaceId: workspace.id,
+    detail: { platforms: value.length === 0 ? "all" : value },
+  });
+
+  revalidatePath(`/admin/workspaces/${workspace.id}`);
 }

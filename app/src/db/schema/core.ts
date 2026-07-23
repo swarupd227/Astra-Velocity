@@ -13,6 +13,7 @@ import { ROLES } from "@/lib/roles";
 
 export const userRole = pgEnum("user_role", ROLES);
 export const workspaceKind = pgEnum("workspace_kind", ["pursuit", "engagement", "demo"]);
+export const workspaceStatus = pgEnum("workspace_status", ["active", "archived"]);
 export const actorType = pgEnum("actor_type", ["human", "agent", "system"]);
 
 export const users = pgTable("users", {
@@ -31,6 +32,7 @@ export const workspaces = pgTable("workspaces", {
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   kind: workspaceKind("kind").notNull().default("pursuit"),
+  status: workspaceStatus("status").notNull().default("active"),
   /** Data-residency / sensitivity label; drives AI routing policy later. */
   sensitivity: text("sensitivity").notNull().default("standard"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -4,10 +4,11 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { auditLog, users } from "@/db/schema";
+import { isForeignKeyViolation } from "@/lib/db-errors";
 import { ROLES } from "@/lib/roles";
 import { requirePermission } from "@/lib/require-permission";
 
@@ -141,4 +142,57 @@ export async function inviteUserAction(
 
   revalidatePath("/admin/users");
   return { ok: true, email, tempPassword };
+}
+
+/**
+ * Permanently delete a user. Blocks self-delete and deleting the last
+ * remaining platform_admin account. projects.created_by has no onDelete —
+ * Postgres rejects the delete with a foreign-key violation if this user
+ * created any project; that is caught and turned into a clear message
+ * rather than a raw DB error. The snapshot is written to audit_log in the
+ * same transaction as the delete, so a blocked delete never leaves a false
+ * audit record. Audited as "admin.user.delete".
+ */
+export async function deleteUserAction(formData: FormData): Promise<void> {
+  const admin = await requirePermission("admin.users");
+  const userId = UserIdSchema.parse(formData.get("userId"));
+
+  if (userId === admin.id) redirect("/admin/users?error=self-delete");
+
+  const target = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  if (!target) redirect("/admin/users?error=not-found");
+
+  if (target.role === "platform_admin") {
+    const [[remainingAdmins]] = await Promise.all([
+      db.select({ n: count() }).from(users).where(eq(users.role, "platform_admin")),
+    ]);
+    if (remainingAdmins.n <= 1) redirect("/admin/users?error=last-admin");
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx.insert(auditLog).values({
+        actorType: "human",
+        actorId: admin.id,
+        action: "admin.user.delete",
+        entityType: "user",
+        entityId: target.id,
+        detail: {
+          email: target.email,
+          name: target.name,
+          role: target.role,
+          isActive: target.isActive,
+          createdAt: target.createdAt,
+        },
+      });
+      await tx.delete(users).where(eq(users.id, target.id));
+    });
+  } catch (err) {
+    if (isForeignKeyViolation(err)) {
+      redirect(`/admin/users?error=has-projects&email=${encodeURIComponent(target.email)}`);
+    }
+    throw err;
+  }
+
+  revalidatePath("/admin/users");
 }

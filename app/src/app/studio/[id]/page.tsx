@@ -10,8 +10,15 @@ import { AccessDenied } from "@/components/access-denied";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmButton } from "@/components/ui/confirm-button";
-import { createDraftAction, discardDraftAction, publishDraftAction } from "../actions";
+import { TypeToConfirm } from "@/components/ui/type-to-confirm";
+import {
+  createDraftAction,
+  discardDraftAction,
+  hardDeleteContentAction,
+  publishDraftAction,
+} from "../actions";
 import { KIND_LABELS, payloadName } from "../kind-schemas";
+import { findPublishedReferences } from "../references";
 import { DraftEditor } from "./draft-editor";
 
 export const metadata = { title: "Content Item — Astra Velocity" };
@@ -36,6 +43,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   "not-a-draft": "That action applies to draft versions only.",
   "invalid-payload":
     "This draft does not satisfy its content schema — fix the payload and save before publishing.",
+  "cannot-delete-published":
+    "Published versions can't be permanently deleted — publish a replacement or deprecate it first.",
+  "still-referenced":
+    "Can't delete — this is the only remaining version of this key and other published content still references it. Update or remove those references first.",
 };
 
 export default async function StudioItemPage({
@@ -79,8 +90,14 @@ export default async function StudioItemPage({
 
   const existingDraft = versions.find((v) => v.status === "draft");
   const canPublish = hasPermission(session.user.role, "library.publish");
+  const canDelete = hasPermission(session.user.role, "library.publish");
   const name = payloadName(item.payload) || item.key;
   const payloadJson = JSON.stringify(item.payload, null, 2);
+
+  const isLastVersion = versions.length === 1;
+  const references =
+    item.status !== "published" ? await findPublishedReferences(item.kind, item.key) : [];
+  const blockDelete = isLastVersion && references.length > 0;
 
   return (
     <div className="space-y-6">
@@ -204,6 +221,61 @@ export default async function StudioItemPage({
               Publishing marks this version published and deprecates the currently-published
               version of {item.kind}/{item.key} in a single transaction. Both steps are audited.
             </p>
+          )}
+
+          {/* Danger zone — hard delete, draft/deprecated only */}
+          {item.status !== "published" && (
+            <section className="rounded-2xl border border-red-500/30 bg-white dark:bg-slate-900/60 p-5">
+              <h2 className="text-base font-semibold text-red-700 dark:text-red-300">Danger zone</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Permanently deletes this {item.status} version — unlike discarding a draft, this
+                also removes deprecated history from the audit trail&apos;s live tables (the
+                snapshot itself stays in the audit log).
+              </p>
+
+              {!canDelete && (
+                <p className="mt-3 text-xs text-slate-500">
+                  Permanently deleting content requires the library.publish permission.
+                </p>
+              )}
+
+              {canDelete && blockDelete && (
+                <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+                  This is the only remaining version of {item.kind}/{item.key}, and it is still
+                  referenced by {references.length} published item
+                  {references.length === 1 ? "" : "s"}:{" "}
+                  {references.map((r) => `${r.kind}/${r.key}`).join(", ")}. Deleting it would
+                  leave those references dangling, so this delete is blocked.
+                </div>
+              )}
+
+              {canDelete && !blockDelete && (
+                <ActionForm
+                  action={hardDeleteContentAction}
+                  error="Could not delete this item — please try again."
+                  className="mt-3"
+                >
+                  <input type="hidden" name="id" value={item.id} />
+                  <TypeToConfirm
+                    confirmText={`${item.kind}/${item.key}`}
+                    triggerLabel="Permanently delete this version"
+                    destroyLabel="Delete version permanently"
+                    description={`This permanently deletes ${item.kind}/${item.key} v${item.version} (${item.status}). This cannot be undone.`}
+                    consequences={[
+                      `${item.kind}/${item.key} v${item.version} — ${item.status}`,
+                      ...(isLastVersion
+                        ? ["This is the only remaining version of this key — the key will no longer exist in the library."]
+                        : []),
+                      ...(references.length > 0 && !isLastVersion
+                        ? [
+                            `Still referenced by ${references.length} published item${references.length === 1 ? "" : "s"} (safe to delete — a published version of this key remains)`,
+                          ]
+                        : []),
+                    ]}
+                  />
+                </ActionForm>
+              )}
+            </section>
           )}
         </div>
 

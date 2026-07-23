@@ -805,6 +805,17 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "classification (BigID, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 2, bigid: 1, snowflake: 1 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "The catalog and data-quality scorecards pull evidence directly from CDGC's metadata and CDQ APIs, so the automation-readiness lens scores CLAIRE suggestion volume against acceptance rate rather than against a claimed feature list.",
+      },
+      {
+        platformKey: "bigid",
+        note: "The classification scorecard scores against BigID's own confidence-threshold telemetry and correlation-engine coverage — the two numbers that actually predict whether classification will hold up under a privacy audit.",
+      },
+    ],
   },
   {
     key: "tool-role-mapping-canvas",
@@ -833,6 +844,25 @@ export const ELEMENTS: Element[] = [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { "idmc-cdgc": 2, snowflake: 2, databricks: 2, bigid: 1, immuta: 1, "power-bi": 1 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "Mapped as the catalog_metadata and data_quality anchor, with classification and semantic_layer marked supports — the canvas's first watchpoint is usually CLAIRE classification duplicating a BigID scan with no propagation owner named.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Mapped as the access_policy enforcement point regardless of which catalog anchors above it — the canvas exists precisely to stop this enforcement role from being assumed rather than assigned.",
+      },
+      {
+        platformKey: "databricks",
+        note: "Mapped as the lineage anchor and, when both a lakehouse and a warehouse sit in the stack, a second access_policy enforcement point — the canvas flags this as a watchpoint, not a redundancy to ignore.",
+      },
+      {
+        platformKey: "power-bi",
+        note: "Mapped as the semantic_layer anchor at the consumption edge — the canvas's job here is confirming Power BI's model logic reuses the certified glossary definition rather than re-deriving its own.",
+      },
+    ],
   },
   {
     key: "evidence-probe-checklists",
@@ -858,6 +888,21 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 2, databricks: 1, bigid: 1 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "The native-AI probe samples CLAIRE's suggestion confidence distribution and acceptance rate directly from CDGC's audit API, rather than asking a practitioner to estimate it.",
+      },
+      {
+        platformKey: "databricks",
+        note: "The lineage probe compares Unity Catalog's automatically captured lineage graph against the claimed coverage map — automatic capture inside the lakehouse makes under-claiming as likely a finding as over-claiming.",
+      },
+      {
+        platformKey: "bigid",
+        note: "The classification probe runs BigID's correlation engine against a known test-subject sample and checks the match rate, rather than accepting classifier deployment as proof classification actually works.",
+      },
+    ],
   },
   {
     key: "native-ai-activation-review",
@@ -882,6 +927,29 @@ export const ELEMENTS: Element[] = [
     toolTags: [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "classification (BigID, platform-native)",
+    ],
+    platformAffinity: { "idmc-cdgc": 3, snowflake: 2, databricks: 2, bigid: 2, immuta: 1, "power-bi": 2 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "Reviews CLAIRE suggestion precision on classification and glossary association, and whether curation still starts from a blank form instead of a CLAIRE-suggested candidate.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Reviews Cortex Analyst adoption against the certified semantic model, and whether Cortex-governed AI functions actually enforce the same masking and RBAC as any query or are being bypassed by direct warehouse access.",
+      },
+      {
+        platformKey: "databricks",
+        note: "Reviews whether Unity Catalog's automatic lineage capture is genuinely relied on end-to-end, and whether Databricks Assistant's Lakehouse Monitoring anomaly signals route into the steward triage queue or get silently ignored.",
+      },
+      {
+        platformKey: "bigid",
+        note: "Reviews classifier confidence thresholds and correlation-engine coverage against the insurance NPPI taxonomy, since BigID's ML engine is the whole product to activate, not a bolt-on feature.",
+      },
+      {
+        platformKey: "power-bi",
+        note: "Reviews whether Copilot in Power BI is scoped to certified datasets only, since a Copilot summary over an uncertified dataset produces a fluent, wrong answer as easily as an uncertified manual report.",
+      },
     ],
   },
 
@@ -1125,6 +1193,21 @@ export const ELEMENTS: Element[] = [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "dq-engine (Informatica CDQ, platform-native)",
     ],
+    platformAffinity: { bigid: 2, immuta: 2, "idmc-cdgc": 1 },
+    platformVariants: [
+      {
+        platformKey: "bigid",
+        note: "The classification lab runs against BigID's classifier UI so trainees see real confidence scores and correlation-engine output, not a simulated screen.",
+      },
+      {
+        platformKey: "immuta",
+        note: "The access-enforcement lab has trainees author an actual Immuta purpose-based policy and watch it take effect across a connected warehouse in real time.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "The CDE-registration lab runs inside CDGC, so trainees register a CDE and watch its CDQ rule deploy through the same pipeline production rules use.",
+      },
+    ],
   },
   {
     key: "tm-lineage-governance-as-code",
@@ -1248,6 +1331,21 @@ export const ELEMENTS: Element[] = [
     scenarioAffinity: { "regulatory-reporting": 2, "report-integrity": 2, "financial-reconciliation": 1 },
     effortSavedStewardWeeks: 0.5,
     toolTags: ["catalog-suite (Informatica CDGC, Collibra, Atlan)"],
+    platformAffinity: { "idmc-cdgc": 2, databricks: 3, bigid: 1 },
+    platformVariants: [
+      {
+        platformKey: "databricks",
+        note: "Unity Catalog lineage capture is automatic for anything running through the lakehouse, so the map marks that zone rendered by default and reserves manual documentation for what happens before ingestion and after export.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Scanner reach is plotted per connector configured in CDGC — the map's most common finding is a source system with no scanner connector at all, silently excluded from claimed coverage.",
+      },
+      {
+        platformKey: "bigid",
+        note: "Plots BigID's scan reach separately from the catalog's own scanner, since unstructured and free-text claims content is frequently covered by BigID and invisible to a catalog-only lineage story.",
+      },
+    ],
   },
   {
     key: "manual-stitch-documentation-standard",
@@ -1353,6 +1451,25 @@ export const ELEMENTS: Element[] = [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { bigid: 3, immuta: 3, "idmc-cdgc": 2, snowflake: 2, databricks: 1 },
+    platformVariants: [
+      {
+        platformKey: "bigid",
+        note: "Discovery and classification originate in BigID's ML classifiers; the propagation step exports confidence-scored labels via API rather than re-deriving them in the catalog.",
+      },
+      {
+        platformKey: "immuta",
+        note: "The approved label lands as an Immuta policy attribute so masking enforces dynamically across every connected warehouse, without a duplicated masked view per consumer.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "The approved label writes to a CDGC catalog annotation and CDE registration in the same API call, keeping the catalog and the enforcement layer's tag in lockstep.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Where no dedicated access-policy platform sits in the stack, the label compiles directly to a Snowflake object tag plus a masking-policy assignment keyed on that same tag.",
+      },
+    ],
   },
   {
     key: "metadata-only-agent-boundary",
@@ -1431,6 +1548,17 @@ export const ELEMENTS: Element[] = [
       "ci-cd (Git-based pipeline, contract validation)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { snowflake: 2, databricks: 2 },
+    platformVariants: [
+      {
+        platformKey: "snowflake",
+        note: "The contract's quality-threshold section compiles to a Snowflake-native check executed as part of the ingestion pipeline, failing the load rather than the report.",
+      },
+      {
+        platformKey: "databricks",
+        note: "CI validation runs against the Delta table schema before a job is promoted, so a breaking upstream schema change fails the pipeline instead of reaching a downstream notebook.",
+      },
+    ],
   },
   {
     key: "bordereaux-tpa-contract-exemplars",
@@ -1481,6 +1609,21 @@ export const ELEMENTS: Element[] = [
       "ci-cd (Git-based pipeline, contract validation)",
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
       "workflow (steward queue, ITSM integration)",
+    ],
+    platformAffinity: { snowflake: 2, databricks: 2, "idmc-cdgc": 1 },
+    platformVariants: [
+      {
+        platformKey: "snowflake",
+        note: "Runtime validators execute as scheduled SQL tasks against Snowflake compiling contract thresholds into query assertions, with breach rows landing in a dedicated schema the steward queue reads from.",
+      },
+      {
+        platformKey: "databricks",
+        note: "Runtime validators run as Lakehouse Monitoring expectations attached to the contract's target tables, so a breach is a monitoring alert routed the same way as any other data-quality signal in the lakehouse.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Contract quality thresholds compile to CDQ rules bound to the CDEs the contract covers, so a contract breach and a standard DQ rule breach land in the same CDGC breach queue.",
+      },
     ],
   },
   {
@@ -1789,6 +1932,17 @@ export const ELEMENTS: Element[] = [
     sectorAffinity: { "pc-personal": 3, "life-annuities": 2, "health-benefits": 2, "brokerage-mga": 1 },
     scenarioAffinity: { "sensitive-data-unlock": 3, "ai-ml-readiness": 1 },
     effortSavedStewardWeeks: 1.5,
+    platformAffinity: { immuta: 3, "idmc-cdgc": 1 },
+    platformVariants: [
+      {
+        platformKey: "immuta",
+        note: "The purpose taxonomy loads directly as Immuta purpose definitions, so a 'claims handling' versus 'analytics' access decision reads the same governed attribute the semantic model defines.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Consent and purpose attributes register as CDEs in CDGC with their own quality dimensions (capture-channel completeness, timestamp validity), so consent data is governed to the same bar as any other critical element.",
+      },
+    ],
     toolTags: [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
@@ -1843,6 +1997,21 @@ export const ELEMENTS: Element[] = [
     toolTags: [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "warehouse (Snowflake, Databricks)",
+    ],
+    platformAffinity: { immuta: 3, snowflake: 2, databricks: 2 },
+    platformVariants: [
+      {
+        platformKey: "immuta",
+        note: "Purpose-based access is Immuta's signature capability here — purposes are authored once as attribute-and-purpose rules and enforced dynamically across every connected warehouse, without a duplicated masked view per consumer.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Without a dedicated access-policy platform, purpose-based logic compiles to conditional masking-policy DDL keyed off a session context variable carrying the declared purpose.",
+      },
+      {
+        platformKey: "databricks",
+        note: "Enforced through Unity Catalog row filters and column masks parameterized by a purpose attribute passed at query time, evaluated at the same layer that runs the compute.",
+      },
     ],
   },
 
@@ -2107,6 +2276,21 @@ export const ELEMENTS: Element[] = [
     },
     scenarioAffinity: { "report-integrity": 2, "greenfield-platform": 2, "ai-ml-readiness": 1 },
     toolTags: ["catalog-suite (Informatica CDGC, Collibra, Atlan)", "bi (Power BI, Tableau)"],
+    platformAffinity: { "power-bi": 3, "idmc-cdgc": 2, snowflake: 1 },
+    platformVariants: [
+      {
+        platformKey: "power-bi",
+        note: "The tier badge surfaces as a Power BI certification/promotion label on the dataset, so 'is this number trustworthy' is answered at the point of consumption instead of requiring a trip back to the catalog.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Tier evidence — CDE control coverage, lineage explainability — is pulled from CDGC's own telemetry APIs rather than re-collected, so certification stays current without a manual audit pass.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "For products consumed straight from the warehouse, the tier badge is expressed as an object tag surfaced through a metadata query any BI tool can read, not only Power BI.",
+      },
+    ],
   },
   {
     key: "certification-checklist-template",
@@ -2130,6 +2314,17 @@ export const ELEMENTS: Element[] = [
     scenarioAffinity: { "report-integrity": 2, "greenfield-platform": 1, "regulatory-reporting": 1 },
     effortSavedStewardWeeks: 1,
     toolTags: ["catalog-suite (Informatica CDGC, Collibra, Atlan)", "workflow (evidence pack assembly)"],
+    platformAffinity: { "power-bi": 2, "idmc-cdgc": 2 },
+    platformVariants: [
+      {
+        platformKey: "power-bi",
+        note: "The evidence pack's semantic-bindings section checks that every certified Power BI measure resolves to the certified glossary term, not a locally redefined one — the classic drift point between catalog and BI model.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Most fields — maturity score, CDE register, lineage coverage — populate directly from CDGC APIs; stewards write only the judgment sections, such as known limitations and steward contact.",
+      },
+    ],
   },
   {
     key: "duplicate-view-retirement-playbook",
@@ -2589,5 +2784,304 @@ export const ELEMENTS: Element[] = [
     },
     scenarioAffinity: { "report-integrity": 1, "operational-finops": 1, "regulatory-reporting": 1 },
     toolTags: ["workflow (narrative templates)", "bi (Power BI, Tableau)"],
+  },
+
+  // ───────────────────────── Platform-Native Toolkit Elements (Anchor Deep-Dive) ─────────────────────────
+  {
+    key: "cdgc-scanner-claire-config-starter",
+    packKey: "vp-03",
+    type: "toolkit",
+    name: "CDGC Scanner & CLAIRE Configuration Starter",
+    pitch: "Get scanners connected and CLAIRE tuned before the first glossary term gets curated.",
+    description:
+      "A build-ready checklist for standing up Informatica CDGC as the estate's catalog of record: scanner connection setup per source type (policy admin, claims, warehouse, file-based bordereaux feeds), CLAIRE confidence-threshold tuning so auto-classification and auto-association suggestions arrive at a precision stewards will actually trust, bulk glossary term loading via the catalog API from a starter pack rather than the UI, and the curation workflow configuration that routes suggestions to the right steward queue by domain.",
+    soWhat:
+      "The weeks normally spent on scanner trial-and-error and default-threshold noise disappear before curation starts — stewards' first session is reviewing good suggestions, not tolerating bad ones.",
+    audience: ["Governance platform engineers", "Catalog administrators", "Data stewards"],
+    capabilities: ["catalog_metadata", "classification", "semantic_layer"],
+    bestPracticeKeys: ["governance-as-code", "classify-once-propagate-everywhere", "measured-leverage"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "health-benefits": 1,
+      "specialty-es": 1,
+      investments: 1,
+    },
+    scenarioAffinity: { "greenfield-platform": 3, "sensitive-data-unlock": 1, "report-integrity": 1 },
+    effortSavedStewardWeeks: 1.5,
+    toolTags: ["catalog-suite (Informatica CDGC, Collibra, Atlan)", "classification (BigID, platform-native)"],
+    platformAffinity: { "idmc-cdgc": 3 },
+  },
+  {
+    key: "cdgc-cdq-rule-pattern",
+    packKey: "vp-01",
+    type: "dq-rule-library",
+    name: "CDGC CDQ Rule Authoring Pattern",
+    pitch: "A real CDQ rule definition — threshold, severity, and routing wired together — not a rule-editor tutorial.",
+    description:
+      "A concrete Informatica CDQ rule definition pattern for the earned-premium-versus-written-premium reconciliation check: expression, reference-table threshold binding, severity classification, and exception routing to the steward queue, expressed in the declarative form CDGC's rule engine actually consumes. Written to be copied and re-pointed at a different CDE rather than studied as documentation.",
+    soWhat:
+      "A steward or platform engineer authoring their tenth CDQ rule starts from a working pattern instead of the CDGC rule editor's blank form, cutting authoring time and rule-inconsistency defects at once.",
+    audience: ["Governance platform engineers", "DQ analysts", "Data stewards"],
+    capabilities: ["data_quality"],
+    dataDomains: ["premium", "reserve"],
+    bestPracticeKeys: ["cde-anchored-quality", "governance-as-code", "remediation-loop-not-dashboard"],
+    obligationKeys: ["asop-23"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "specialty-es": 1,
+      reinsurance: 1,
+    },
+    scenarioAffinity: { "report-integrity": 2, "financial-reconciliation": 2, "greenfield-platform": 1 },
+    toolTags: ["dq-engine (Informatica CDQ, platform-native)"],
+    platformAffinity: { "idmc-cdgc": 3 },
+  },
+  {
+    key: "snowflake-tagging-taxonomy-starter",
+    packKey: "vp-03",
+    type: "template",
+    name: "Snowflake Governance Tagging Taxonomy Starter",
+    pitch: "The object tag hierarchy, masking pattern, and RBAC role tree that make Snowflake the enforcement layer, not a free-for-all warehouse.",
+    description:
+      "A starter template for Snowflake's native governance surface: a three-level object tag hierarchy (sensitivity, data domain, product) that every downstream masking policy and access grant keys off of, a masking-policy pattern showing conditional masking driven by role and purpose, and an RBAC role hierarchy starter separating functional roles from access roles the way Snowflake's own security guidance recommends. Designed to be the tag and role scaffolding a data product inherits at creation, not retrofitted after the fact.",
+    soWhat:
+      "New schemas launch already wired to the enforcement layer instead of accumulating ungoverned tables that get retrofitted with tags and masking a year later at five times the cost.",
+    audience: ["Governance platform engineers", "Security engineers", "Data product teams"],
+    capabilities: ["access_policy", "classification", "catalog_metadata"],
+    bestPracticeKeys: ["classify-once-propagate-everywhere", "govern-at-inception", "governance-as-code"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "health-benefits": 1,
+      investments: 1,
+    },
+    scenarioAffinity: { "greenfield-platform": 3, "sensitive-data-unlock": 2, "ai-ml-readiness": 1 },
+    effortSavedStewardWeeks: 1.5,
+    toolTags: ["warehouse (Snowflake, Databricks)", "policy-enforcement (Immuta, platform-native RBAC)"],
+    platformAffinity: { snowflake: 3, immuta: 1 },
+  },
+  {
+    key: "cortex-semantic-views-starter",
+    packKey: "vp-01",
+    type: "semantic-pack",
+    name: "Cortex-Governed Semantic Views Starter",
+    pitch: "A semantic view Cortex Analyst can query in natural language without stepping around RBAC.",
+    description:
+      "A Snowflake semantic view DDL pattern that defines certified measures (written premium, earned premium, loss ratio) with their dimensions and joins, built so Cortex Analyst answers natural-language business questions against the certified definition instead of raw tables — and so the view's row-access and masking policies apply identically whether the query comes from a person, a BI tool, or a Cortex-governed AI function.",
+    soWhat:
+      "A Cortex Analyst answer stops being a fluent guess: it resolves to the one certified metric definition, masked and row-limited exactly as a manual query would be.",
+    audience: ["Governance platform engineers", "Analytics leads", "Data product teams"],
+    capabilities: ["semantic_layer", "access_policy"],
+    dataDomains: ["premium", "claim", "policy"],
+    bestPracticeKeys: ["one-certified-definition-per-metric", "governance-as-code"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 1,
+      investments: 1,
+    },
+    scenarioAffinity: { "ai-ml-readiness": 3, "report-integrity": 2, "greenfield-platform": 1 },
+    toolTags: ["warehouse (Snowflake, Databricks)", "bi (Power BI, Tableau)"],
+    platformAffinity: { snowflake: 3 },
+  },
+  {
+    key: "unity-catalog-governance-starter",
+    packKey: "vp-03",
+    type: "toolkit",
+    name: "Unity Catalog Governance Starter",
+    pitch: "Catalog naming, lineage verification, and access-grant hierarchy — set once, inherited by every schema after.",
+    description:
+      "A build checklist for standing up Unity Catalog as the lakehouse's governance substrate: a three-level catalog/schema/table naming convention that encodes environment and domain, lineage verification steps that confirm automatic capture is actually rendering for a representative notebook-to-table chain before it's trusted, and an access-grant hierarchy pattern (catalog-level defaults, schema-level domain grants, table-level exceptions) that avoids the all-tables-open-by-default failure mode.",
+    soWhat:
+      "A new lakehouse workspace inherits governance instead of accumulating it later — the naming and grant patterns that make product 40 cheaper than product 4 are in place before product 1 ships.",
+    audience: ["Governance platform engineers", "Data engineers", "Platform owners"],
+    capabilities: ["catalog_metadata", "access_policy", "lineage"],
+    bestPracticeKeys: ["govern-at-inception", "governance-as-code", "pattern-reuse-economics"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      investments: 1,
+    },
+    scenarioAffinity: { "greenfield-platform": 3, "ai-ml-readiness": 1, "report-integrity": 1 },
+    effortSavedStewardWeeks: 1.5,
+    toolTags: ["warehouse (Snowflake, Databricks)"],
+    platformAffinity: { databricks: 3 },
+  },
+  {
+    key: "lakehouse-monitoring-dq-starter",
+    packKey: "vp-01",
+    type: "dq-rule-library",
+    name: "Lakehouse Monitoring DQ Expectations Starter",
+    pitch: "DQ expectations wired into the pipeline that produces the data, not a batch job bolted on after.",
+    description:
+      "A Databricks Lakehouse Monitoring / Delta Live Tables expectations pattern for a claims CDE table: completeness and validity expectations on loss date, report date, and reserve amount, with a quarantine action on critical failures and a monitored-metrics table that Databricks Assistant's anomaly detection reads from. Expressed as pipeline code so the check runs at the moment the table lands, not on a separate schedule.",
+    soWhat:
+      "Quality checks stop drifting out of sync with the pipeline that produces the data, and a breach is caught before a bad row reaches a downstream reserve calculation.",
+    audience: ["Data engineers", "DQ analysts", "Governance platform engineers"],
+    capabilities: ["data_quality"],
+    dataDomains: ["claim", "reserve"],
+    bestPracticeKeys: ["cde-anchored-quality", "governance-as-code", "remediation-loop-not-dashboard"],
+    obligationKeys: ["asop-23"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "specialty-es": 1,
+      reinsurance: 1,
+    },
+    scenarioAffinity: { "report-integrity": 2, "claims-analytics": 2, "greenfield-platform": 1 },
+    toolTags: ["warehouse (Snowflake, Databricks)"],
+    platformAffinity: { databricks: 3 },
+  },
+  {
+    key: "bigid-classifier-tuning-starter",
+    packKey: "vp-11",
+    type: "toolkit",
+    name: "BigID Classifier Tuning & Correlation Starter",
+    pitch: "Classifier selection and threshold tuning for the categories a generic PII scan misses.",
+    description:
+      "A build checklist for tuning BigID against insurance-specific sensitive-data categories: classifier selection per data type (claims medical narrative, NPPI financial fields, producer license and appointment numbers, litigation and SIU flags), confidence-threshold tuning by category so low-signal free-text findings route to review instead of auto-publishing, correlation-engine subject-matching setup across policy, claims, and billing systems, and the validation sampling pass that confirms precision before findings feed the catalog.",
+    soWhat:
+      "Classification coverage on the categories that actually cause insurance privacy incidents — not generic PII — is live in weeks, and findings arrive at a confidence stewards can trust rather than a flood to sift through by hand.",
+    audience: ["Privacy partners", "Security engineers", "Data stewards"],
+    capabilities: ["classification"],
+    dataDomains: ["claim", "party", "producer-distribution"],
+    bestPracticeKeys: ["classify-once-propagate-everywhere", "agents-on-metadata-only", "measured-leverage"],
+    obligationKeys: ["glba-nppi", "hipaa-phi"],
+    sectorAffinity: {
+      "pc-personal": 3,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "health-benefits": 2,
+      "brokerage-mga": 1,
+    },
+    scenarioAffinity: { "sensitive-data-unlock": 3, "ai-ml-readiness": 1 },
+    effortSavedStewardWeeks: 1.5,
+    toolTags: ["classification (BigID, platform-native)"],
+    platformAffinity: { bigid: 3 },
+  },
+  {
+    key: "bigid-unstructured-claims-scan-playbook",
+    packKey: "vp-11",
+    type: "toolkit",
+    name: "BigID Unstructured Claims Content Scan Playbook",
+    pitch: "Adjuster notes and medical narrative are where a catalog scanner sees nothing and BigID earns its keep.",
+    description:
+      "The method for scanning the unstructured content a catalog's structured scanner never reaches: connector setup for claims-document repositories and imaging systems, entity-extraction model selection tuned for medical narrative and adjuster free-text notes, a sampling-based precision validation pass before findings are trusted at scale, and the routing rule that sends high-confidence sensitive findings to the steward review queue rather than auto-classifying documents wholesale.",
+    soWhat:
+      "The sensitivity map stops stopping at structured columns — the medical narrative and litigation notes that cause the real incidents get classified and routed instead of sitting invisible in a document store.",
+    audience: ["Privacy partners", "Security engineers", "SIU", "Data stewards"],
+    capabilities: ["classification", "stewardship_ops"],
+    dataDomains: ["claim"],
+    bestPracticeKeys: ["agents-on-metadata-only", "classify-once-propagate-everywhere", "agents-draft-stewards-decide"],
+    obligationKeys: ["hipaa-phi", "glba-nppi"],
+    sectorAffinity: {
+      "pc-personal": 3,
+      "pc-commercial": 2,
+      "health-benefits": 2,
+    },
+    scenarioAffinity: { "sensitive-data-unlock": 3, "claims-analytics": 1 },
+    toolTags: ["classification (BigID, platform-native)"],
+    platformAffinity: { bigid: 3, "idmc-cdgc": 1 },
+  },
+  {
+    key: "immuta-purpose-policy-starter",
+    packKey: "vp-15",
+    type: "template",
+    name: "Immuta Purpose-Based Policy Starter",
+    pitch: "Claims handling sees the medical narrative; analytics sees the aggregate. One policy pattern, not two extracts.",
+    description:
+      "A starter template for authoring Immuta purpose-based policies over insurance data: the purpose-definition pattern contrasting 'claims handling' against 'analytics' access, the attribute-tag mapping that pulls sensitivity labels from BigID or CDGC classification rather than re-deciding them in Immuta, a masking rule pattern per purpose (full access, aggregate-only, field-masked), and the exception-and-expiry pattern that keeps purpose grants from becoming permanent by default.",
+    soWhat:
+      "Purpose-based access moves from a described intent to an authored, testable policy in days, and every grant traces to a declared purpose an audit can replay.",
+    audience: ["Security engineers", "Privacy partners", "Analytics leads"],
+    capabilities: ["access_policy", "classification"],
+    dataDomains: ["claim", "party"],
+    bestPracticeKeys: ["purpose-based-access", "classify-once-propagate-everywhere"],
+    obligationKeys: ["glba-nppi", "state-privacy-laws"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "health-benefits": 2,
+    },
+    scenarioAffinity: { "sensitive-data-unlock": 3, "ai-ml-readiness": 1 },
+    effortSavedStewardWeeks: 1,
+    toolTags: ["policy-enforcement (Immuta, platform-native RBAC)"],
+    platformAffinity: { immuta: 3, bigid: 1 },
+  },
+  {
+    key: "immuta-policy-testing-toolkit",
+    packKey: "vp-03",
+    type: "toolkit",
+    name: "Immuta Policy Testing & Impact Analysis Toolkit",
+    pitch: "See who a policy change actually affects before it ships, not after the help-desk ticket.",
+    description:
+      "A testing discipline for promoting Immuta policy-as-code changes: a dry-run impact-analysis step that lists every consumer whose access would change before a policy merges, a regression test suite that re-verifies existing purposes still resolve correctly after the change, and a staged rollout pattern by consumer group so a policy error affects a pilot population before the whole estate. Wired into the same CI gate the governance definition schema already uses.",
+    soWhat:
+      "Policy changes stop being a leap of faith: a steward sees the blast radius before approving, and staged rollout catches an authoring error against ten users instead of ten thousand.",
+    audience: ["Security engineers", "Governance platform engineers", "Privacy partners"],
+    capabilities: ["access_policy", "stewardship_ops"],
+    bestPracticeKeys: ["governance-as-code", "purpose-based-access", "steward-as-supervisor"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      "health-benefits": 1,
+    },
+    scenarioAffinity: { "sensitive-data-unlock": 2, "greenfield-platform": 1 },
+    toolTags: ["policy-enforcement (Immuta, platform-native RBAC)", "ci-cd (Git-based pipeline, policy validation)"],
+    platformAffinity: { immuta: 3 },
+  },
+  {
+    key: "power-bi-certification-rls-starter",
+    packKey: "vp-18",
+    type: "template",
+    name: "Power BI Certified Dataset & RLS Starter",
+    pitch: "The certification workflow and row-level security pattern that make a Power BI badge mean something.",
+    description:
+      "A starter template for Power BI's consumption-layer governance: certification workflow criteria tied to the marketplace certification tiers, a row-level security role pattern for insurance data (policy state, line of business, sensitivity tier) that maps cleanly onto upstream warehouse row-access policies rather than duplicating them, and a measure-certification checklist that ties every certified DAX measure back to its certified glossary definition before endorsement.",
+    soWhat:
+      "Certification stops being a badge applied once and forgotten: every certified dataset in Power BI carries RLS that matches upstream policy and measures that trace to one certified meaning.",
+    audience: ["BI developers", "Data stewards", "Analytics leads"],
+    capabilities: ["semantic_layer", "access_policy", "stewardship_ops"],
+    bestPracticeKeys: ["certified-data-products", "one-certified-definition-per-metric", "purpose-based-access"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 2,
+      investments: 1,
+    },
+    scenarioAffinity: { "report-integrity": 3, "greenfield-platform": 1 },
+    effortSavedStewardWeeks: 1,
+    toolTags: ["bi (Power BI, Tableau)"],
+    platformAffinity: { "power-bi": 3, snowflake: 1 },
+  },
+  {
+    key: "power-bi-copilot-guardrail-checklist",
+    packKey: "vp-14",
+    type: "toolkit",
+    name: "Power BI Copilot Guardrail Checklist",
+    pitch: "Copilot answers as well as the dataset it's pointed at — this is how you make sure that's the certified one.",
+    description:
+      "A guardrail checklist for enabling Copilot in Power BI without inheriting its honest limitation: scoping Copilot to certified datasets only, a measure-definition review pass before a dataset is exposed to Copilot (an ambiguous measure produces a fluent, wrong Copilot answer as easily as a human one), guardrail and content-scope configuration steps, and a Copilot usage-log monitoring pattern that flags questions answered against uncertified data.",
+    soWhat:
+      "AI-assisted reporting ships without becoming the fastest way to distribute a wrong number — Copilot's fluency stays confined to the definitions the organization actually certified.",
+    audience: ["BI developers", "Governance platform team", "Model risk teams"],
+    capabilities: ["semantic_layer", "stewardship_ops"],
+    bestPracticeKeys: ["certified-data-products", "one-certified-definition-per-metric", "agents-draft-stewards-decide"],
+    obligationKeys: ["naic-ai-model-bulletin"],
+    sectorAffinity: {
+      "pc-personal": 2,
+      "pc-commercial": 2,
+      "life-annuities": 1,
+    },
+    scenarioAffinity: { "ai-ml-readiness": 2, "report-integrity": 1 },
+    toolTags: ["bi (Power BI, Tableau)"],
+    platformAffinity: { "power-bi": 3 },
   },
 ];

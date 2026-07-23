@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import { LibraryBig } from "lucide-react";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { contentItems } from "@/db/schema";
-import { CONTENT_KINDS, type ContentKind } from "@/content/types";
+import {
+  CONTENT_KINDS,
+  PLATFORM_KEYS,
+  SCENARIO_KEYS,
+  SECTOR_KEYS,
+  type ContentKind,
+} from "@/content/types";
 import { hasPermission } from "@/lib/roles";
 import { AccessDenied } from "@/components/access-denied";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { WelcomePanel } from "@/components/welcome-panel";
 import { KIND_LABELS, payloadName } from "./kind-schemas";
+import { NewContentForm } from "./new-content-form";
 
 export const metadata = { title: "Library Studio — Astra Velocity" };
 
@@ -77,7 +84,7 @@ export default async function StudioPage({
     if (nameMatch) conditions.push(nameMatch);
   }
 
-  const [matrix, recent, rows] = await Promise.all([
+  const [matrix, recent, rows, enumKeyRows] = await Promise.all([
     db
       .select({ kind: contentItems.kind, status: contentItems.status, n: count() })
       .from(contentItems)
@@ -108,7 +115,22 @@ export default async function StudioPage({
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(contentItems.updatedAt))
       .limit(100),
+    db
+      .selectDistinct({ kind: contentItems.kind, key: contentItems.key })
+      .from(contentItems)
+      .where(inArray(contentItems.kind, ["sector", "scenario", "platform"])),
   ]);
+
+  const usedEnumKeys = new Map<ContentKind, Set<string>>();
+  for (const r of enumKeyRows) {
+    if (!usedEnumKeys.has(r.kind)) usedEnumKeys.set(r.kind, new Set());
+    usedEnumKeys.get(r.kind)!.add(r.key);
+  }
+  const enumOptions: Partial<Record<ContentKind, string[]>> = {
+    sector: SECTOR_KEYS.filter((k) => !usedEnumKeys.get("sector")?.has(k)),
+    scenario: SCENARIO_KEYS.filter((k) => !usedEnumKeys.get("scenario")?.has(k)),
+    platform: PLATFORM_KEYS.filter((k) => !usedEnumKeys.get("platform")?.has(k)),
+  };
 
   const cell = new Map<string, number>();
   for (const m of matrix) cell.set(`${m.kind}:${m.status}`, m.n);
@@ -137,6 +159,8 @@ export default async function StudioPage({
           {ERROR_MESSAGES[sp.error]}
         </div>
       )}
+
+      <NewContentForm kinds={CONTENT_KINDS} enumOptions={enumOptions} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         {/* Counts by kind and status */}

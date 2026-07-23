@@ -5,7 +5,7 @@ export default function Loading() {
     <div className="space-y-6">
       <SkeletonHeader backLink />
       <SkeletonCard lines={2} />
-      <SkeletonTable rows={7} cols={7} />
+      <SkeletonTable rows={6} cols={7} />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { aiSettings } from "@/db/schema";
-import { SECTOR_KEYS, type SectorKey } from "@/content/types";
+import { PLATFORM_KEYS, SECTOR_KEYS, type PlatformKey, type SectorKey } from "@/content/types";
 import { getWorkspaceForUser } from "@/sim/context";
 
 /**
@@ -72,4 +72,43 @@ export function isInSectorScope(
   );
   if (pinned.length === 0) return true;
   return pinned.some((k) => scope.has(k));
+}
+
+/**
+ * Workspace-level default technology & platform stack scope — same storage
+ * mechanism as sector scope (generic ai_settings key-value store), keyed
+ * under `workspace-platform-scope.<workspaceSlug>` holding a string[] of
+ * platform keys. Absent or empty means "all platforms" (no restriction).
+ * This narrows which platforms are offered/highlighted by default when
+ * composing a project in this workspace — it does not hard-block a choice.
+ */
+
+const PLATFORM_KEY_PREFIX = "workspace-platform-scope.";
+
+export function platformScopeSettingKey(workspaceSlug: string): string {
+  return `${PLATFORM_KEY_PREFIX}${workspaceSlug}`;
+}
+
+/** Parse a stored platform scope value; null means "no restriction" (all platforms). */
+export function parsePlatformScopeValue(value: unknown): ReadonlySet<PlatformKey> | null {
+  if (!Array.isArray(value)) return null;
+  const keys = value.filter((v): v is PlatformKey => PLATFORM_KEYS.includes(v as PlatformKey));
+  if (keys.length === 0) return null;
+  return new Set(keys);
+}
+
+export function allPlatforms(): ReadonlySet<PlatformKey> {
+  return new Set(PLATFORM_KEYS);
+}
+
+/** Platform scope for a specific workspace slug; all platforms when unset. */
+export async function getPlatformScopeForWorkspace(
+  workspaceSlug: string,
+): Promise<ReadonlySet<PlatformKey>> {
+  const [row] = await db
+    .select({ value: aiSettings.value })
+    .from(aiSettings)
+    .where(eq(aiSettings.key, platformScopeSettingKey(workspaceSlug)))
+    .limit(1);
+  return parsePlatformScopeValue(row?.value) ?? allPlatforms();
 }

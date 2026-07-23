@@ -112,12 +112,18 @@ export default async function AdminPage() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <LinkCard
           href="/admin/users"
           icon={<Users className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
           title="Users & Roles"
-          description="Invite users, assign platform roles, and deactivate accounts. Role changes take effect at next sign-in."
+          description="Invite users, assign platform roles, and deactivate or permanently delete accounts. Role changes take effect at next sign-in."
+        />
+        <LinkCard
+          href="/admin/workspaces"
+          icon={<Building2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />}
+          title="Workspaces"
+          description="Create workspaces, manage membership and status, set default sector/platform scope, and hard-delete."
         />
         <LinkCard
           href="/admin/ai"
