@@ -57,6 +57,10 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
     });
   }
 
+  // "Landscape" is no longer a sidebar destination (surfaced instead as a
+  // drawer from the composer's sector step), but /explore stays reachable as
+  // a full deep-linkable reference — these rows are how power users still
+  // find it from the palette.
   for (const o of obligations) {
     rows.push({
       label: o.name,
@@ -72,10 +76,10 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
 
   for (const s of scopedSectors) {
     rows.push({
-      label: s.name,
+      label: `Sector reference: ${s.name}`,
       sublabel: s.tagline,
       href: `/explore?sector=${s.key}`,
-      group: "Sectors",
+      group: "Sector reference",
     });
   }
 

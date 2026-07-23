@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { contentStore } from "@/content/store";
+import type { SectorKey } from "@/content/types";
 import {
   recommendDashboards,
   recommendElements,
@@ -10,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Term } from "@/components/term";
 import { WelcomePanel } from "@/components/welcome-panel";
 import { getSectorScope } from "@/lib/workspace-scope";
+import type { SectorContextData } from "@/components/sector-context-drawer";
+import { SectorContextTrigger } from "@/components/sector-context-trigger";
 import { ComposerCanvas } from "./composer-canvas";
 
 export const metadata = { title: "Composer — Astra Velocity" };
@@ -28,15 +31,35 @@ export default async function ComposerPage({
   const sectorParam = typeof sp.sector === "string" ? sp.sector : undefined;
   const scenarioParam = typeof sp.scenario === "string" ? sp.scenario : undefined;
 
-  const [sectors, scenarios, scope] = await Promise.all([
+  const [sectors, scenarios, obligations, kpis, scope] = await Promise.all([
     contentStore.sectors(),
     contentStore.scenarios(),
+    contentStore.obligations(),
+    contentStore.kpis(),
     getSectorScope(),
   ]);
   // Workspace sector scope: only in-scope sectors are selectable (or linkable).
   const scopedSectors = sectors.filter((s) => scope.has(s.key));
   const sector = scopedSectors.find((s) => s.key === sectorParam);
   const scenario = scenarios.find((s) => s.key === scenarioParam);
+
+  // Full business context per in-scope sector (narrative, value chain,
+  // obligations, KPIs) for the sector context drawer — loaded once here and
+  // handed down as props so opening the drawer needs no extra request.
+  const sectorContext: Partial<Record<SectorKey, SectorContextData>> = Object.fromEntries(
+    scopedSectors.map((s) => [
+      s.key,
+      {
+        sector: s,
+        obligations: s.obligationKeys
+          .map((k) => obligations.find((o) => o.key === k))
+          .filter((o): o is NonNullable<typeof o> => Boolean(o)),
+        kpis: s.kpiKeys
+          .map((k) => kpis.find((kp) => kp.key === k))
+          .filter((k): k is NonNullable<typeof k> => Boolean(k)),
+      },
+    ]),
+  );
 
   // ---------- Selection step ----------
   if (!sector || !scenario) {
@@ -61,20 +84,27 @@ export default async function ComposerPage({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {scopedSectors.map((s) => {
               const active = s.key === sector?.key;
+              const ctx = sectorContext[s.key];
               return (
-                <Link
+                <div
                   key={s.key}
-                  href={`/composer?sector=${s.key}`}
-                  className={`rounded-2xl border p-4 transition ${
+                  className={`flex flex-col rounded-2xl border p-4 transition ${
                     active
                       ? "border-teal-500/60 bg-teal-500/10"
                       : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-400 dark:hover:border-slate-600"
                   }`}
                 >
-                  <h3 className="font-semibold text-slate-900 dark:text-white">{s.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{s.tagline}</p>
-                  <p className="mt-2 text-xs text-slate-500">{s.distributionModel}</p>
-                </Link>
+                  <Link href={`/composer?sector=${s.key}`} className="block">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{s.name}</h3>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{s.tagline}</p>
+                    <p className="mt-2 text-xs text-slate-500">{s.distributionModel}</p>
+                  </Link>
+                  {ctx && (
+                    <div className="mt-3 flex justify-end border-t border-slate-200 dark:border-slate-800 pt-3">
+                      <SectorContextTrigger data={ctx} />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -113,11 +143,10 @@ export default async function ComposerPage({
   }
 
   // ---------- Composition step ----------
-  const [elements, dashboards, bestPractices, obligations, packs] = await Promise.all([
+  const [elements, dashboards, bestPractices, packs] = await Promise.all([
     contentStore.elements(),
     contentStore.dashboards(),
     contentStore.bestPractices(),
-    contentStore.obligations(),
     contentStore.packs(),
   ]);
 
@@ -142,9 +171,12 @@ export default async function ComposerPage({
           </h1>
           <p className="mt-1 max-w-2xl text-slate-500 dark:text-slate-400">{scenario.stakes}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="accent">{recommendations.length} recommended elements</Badge>
           <Badge variant="outline">{scenario.stakeholders.length} stakeholder groups</Badge>
+          {sectorContext[sector.key] && (
+            <SectorContextTrigger data={sectorContext[sector.key]!} label="Business context" />
+          )}
         </div>
       </header>
 

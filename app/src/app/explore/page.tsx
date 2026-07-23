@@ -45,7 +45,10 @@ export default async function ExplorePage({
 
   return (
     <section>
-      <h1 className="font-display text-3xl text-slate-900 dark:text-white">Insurance Landscape Explorer</h1>
+      <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-600">
+        Full sector reference — the same context is available inline from the Composer.
+      </p>
+      <h1 className="mt-1 font-display text-3xl text-slate-900 dark:text-white">Insurance Landscape Explorer</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Ground every engagement in the client&apos;s actual value chain — the pain points you
         select here become the composer&apos;s context.

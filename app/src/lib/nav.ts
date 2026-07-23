@@ -2,7 +2,6 @@ import {
   Award,
   Blocks,
   Bot,
-  Compass,
   Gauge,
   Inbox,
   KanbanSquare,
@@ -49,7 +48,11 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Explore",
     items: [
-      { href: "/explore", label: "Landscape", icon: Compass, personas: ALL_PERSONAS, permission: "library.read" },
+      // "Landscape" (/explore) is intentionally not a sidebar destination —
+      // its content is now surfaced contextually as a drawer from the
+      // composer's sector-selection step. The route itself still works as a
+      // deep-linkable reference (see search-index.ts's "Sector reference"
+      // rows) — do not delete src/app/explore/page.tsx.
       { href: "/scenarios", label: "Scenarios", icon: Map, personas: ALL_PERSONAS, permission: "library.read" },
       { href: "/library", label: "Pack Library", icon: LibraryBig, personas: ALL_PERSONAS, permission: "library.read" },
       { href: "/practices", label: "Best Practices", icon: Award, personas: ALL_PERSONAS, permission: "library.read" },
