@@ -1,4 +1,5 @@
 import { contentStore } from "@/content/store";
+import { PLATFORM_CATEGORY_LABELS } from "@/content/types";
 import type { NavGroup } from "@/lib/nav";
 import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
 import { TYPE_LABELS } from "@/components/library/type-labels";
@@ -11,7 +12,7 @@ import type { SearchRow } from "@/components/command-palette";
  * role carries. Row order fixes group order in the palette.
  */
 export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
-  const [elements, packs, bestPractices, obligations, kpis, sectors, scenarios, dashboards, scope] =
+  const [elements, packs, bestPractices, obligations, kpis, sectors, scenarios, dashboards, platforms, scope] =
     await Promise.all([
       contentStore.elements(),
       contentStore.packs(),
@@ -21,6 +22,7 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
       contentStore.sectors(),
       contentStore.scenarios(),
       contentStore.dashboards(),
+      contentStore.platforms(),
       getSectorScope(),
     ]);
 
@@ -93,6 +95,18 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
       sublabel: `Dashboard blueprint · ${d.audience[0] ?? ""}`,
       href: "/dashboards",
       group: "Dashboards",
+    });
+  }
+
+  // Platforms are not sector-scoped — all 12 stay searchable regardless of
+  // workspace sector scope, and /platforms is a reference route reachable
+  // only via the palette and the platform info drawer (not sidebar nav).
+  for (const p of platforms) {
+    rows.push({
+      label: p.name,
+      sublabel: `${PLATFORM_CATEGORY_LABELS[p.category]} · ${p.tier}`,
+      href: `/platforms/${p.key}`,
+      group: "Platforms",
     });
   }
 

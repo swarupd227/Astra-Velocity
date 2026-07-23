@@ -30,6 +30,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "life-annuities":
         "Underwriting files mix financial NPPI with medical evidence (APS, lab results) under different retention duties; one classification decision must carry both dimensions downstream rather than forcing each admin-system extract to re-derive them.",
     },
+    platformNotes: {
+      "idmc-cdgc":
+        "CDGC classification propagates through CLAIRE-tuned associations to Snowflake object tags and Immuta attributes — one chain, no manual re-tagging.",
+      snowflake:
+        "Object tags set once at classification time drive Snowflake's native masking policies directly, so the warehouse enforces what the catalog decided rather than re-evaluating it.",
+      databricks:
+        "Unity Catalog tags set once at the catalog layer are the single source both Immuta-style and native access policies read from, so a reclassification in Unity Catalog is the only edit required.",
+      bigid:
+        "BigID's correlation engine assigns the sensitivity label once at the data-subject level and publishes it as the tag other tools read — it is the discovery source of truth, not a second opinion alongside the catalog's own scanner.",
+      immuta:
+        "Immuta never re-decides sensitivity; it subscribes to the classification tag from BigID or the catalog and turns it into enforced policy, so the propagation chain only breaks if the tag feed itself breaks.",
+      "power-bi":
+        "Sensitivity labels inherited from upstream tags carry through as Power BI data classification labels on certified datasets, so a masked column stays visibly and functionally masked at the report layer without a separate BI-side decision.",
+    },
   },
   {
     key: "one-certified-definition-per-metric",
@@ -50,6 +64,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "pc-commercial":
         "Earned premium on audit-adjusted and retrospectively rated policies is where definitions splinter fastest; the certified definition must state the audit and retro treatment explicitly.",
     },
+    platformNotes: {
+      "idmc-cdgc":
+        "The certified definition lives as a business term with a linked technical association in CDGC's glossary, and every physical asset the term touches is discoverable from that one entry.",
+      snowflake:
+        "Cortex Analyst's semantic model is where the certified formula actually executes for AI-assisted queries, so the definition must be maintained there, not just documented in a glossary Cortex never reads.",
+      databricks:
+        "Unity Catalog metrics views (or a governed SQL view) express the certified formula once at the lakehouse layer, so every downstream notebook and job resolves the same number rather than re-deriving it.",
+      bigid:
+        "Not a semantic-layer platform — BigID's role here is limited to confirming which underlying fields the certified metric draws on carry the sensitivity labels its inventory expects.",
+      immuta:
+        "Immuta enforces access to the fields the metric is built from but does not participate in defining the metric itself — the certified formula must be resolved upstream of any policy Immuta applies.",
+      "power-bi":
+        "The formula is expressed once as a certified dataset measure and endorsed, so every report built on that dataset inherits the same calculation instead of a report author re-typing the DAX.",
+    },
   },
   {
     key: "cde-anchored-quality",
@@ -69,6 +97,20 @@ export const BEST_PRACTICES: BestPractice[] = [
         "PBR under VM-20 makes experience-study inputs (mortality, lapse, expense) first-class CDEs: quality on those elements is quality on the reserve itself.",
       surety:
         "Financial-statement data of principals — the core underwriting input — is externally sourced and refresh-dated; CDE controls here are freshness and completeness controls on someone else's books.",
+    },
+    platformNotes: {
+      "idmc-cdgc":
+        "CDEs register as a tagged subset of the catalog with CDQ rules bound directly to each registered element, so coverage reporting is a filtered view, not a separate exercise.",
+      snowflake:
+        "CDE-critical columns get flagged with a governance tag that Cortex-based monitoring and downstream masking policies both key off of, keeping the 'this column matters' signal in one place.",
+      databricks:
+        "Lakehouse Monitoring expectations attach to the CDE's table at the point it lands, so quality checks run as part of the same pipeline that produces the data rather than a bolted-on batch job.",
+      bigid:
+        "BigID's discovery inventory tells you where a CDE's values physically live and duplicate across the estate, which is the input CDE ownership decisions need before a rule gets written anywhere.",
+      immuta:
+        "CDE status has no direct policy meaning in Immuta by itself, but CDE tags are commonly reused as one of the attributes a purpose-based policy condition keys on.",
+      "power-bi":
+        "CDE-anchored measures get the certification badge in the dataset, so a report built on an uncertified, non-CDE-anchored figure is visibly distinguishable from one that isn't.",
     },
   },
   {
@@ -96,6 +138,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       investments:
         "Schedule D calls for security-level traceability from custodian and pricing feeds to the filed schedule; a lineage gap here is a filing-quality issue, not a metadata gap.",
     },
+    platformNotes: {
+      "idmc-cdgc":
+        "CDGC's lineage graph stitches across scanned sources and can carry manually-documented hops as first-class, visibly flagged segments — the honest 'we stitched this by hand' the practice requires.",
+      snowflake:
+        "Snowflake's query-level access history gives object-to-object lineage inside the warehouse for free, but it stops at the warehouse boundary — everything upstream needs a scanner or manual stitch to connect.",
+      databricks:
+        "Unity Catalog lineage is automatic and column-level for anything that runs as a notebook, job, or SQL statement inside the lakehouse — the strongest in-boundary lineage source in the stack, with the same boundary limitation as Snowflake.",
+      bigid:
+        "BigID contributes data-flow lineage in its own right — where a sensitive attribute correlates and propagates across systems — which is a useful cross-check against the catalog's structural lineage graph.",
+      immuta:
+        "Immuta is not a lineage source; its relevance here is that its policy audit log shows who accessed data along a traced flow, which is often the second half of what an examiner actually asks for.",
+      "power-bi":
+        "Power BI's dataset lineage view shows report-to-dataset-to-source dependencies within the Microsoft ecosystem, but calculated columns and report-level joins are exactly the report-edge gap the practice warns about.",
+    },
   },
   {
     key: "agents-draft-stewards-decide",
@@ -110,6 +166,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "Designed outcome consistent with supervised-AI operating models in regulated financial services: agent leverage measured in steward-hours saved, with a decision log that turns AI-governance questions into a lookup instead of an investigation.",
     capabilities: ["stewardship_ops", "classification", "data_quality", "catalog_metadata"],
     obligationKeys: ["naic-ai-model-bulletin", "eu-ai-act", "asop-56"],
+    platformNotes: {
+      "idmc-cdgc":
+        "CLAIRE suggestions land in CDGC's review workflow with confidence scores attached, and nothing publishes to the glossary or catalog tags until a steward acts on the queue item.",
+      snowflake:
+        "Cortex-generated outputs (a governed AI function's answer, a Cortex Analyst response) are logged in query history like any other operation, but Snowflake itself has no steward-review queue — that has to be built at the application layer consuming Cortex.",
+      databricks:
+        "Databricks Assistant suggestions land as code or documentation a human reviews before merging, same as any pull request, but the accept/reject decision has to be captured deliberately since it isn't a native governance workflow.",
+      bigid:
+        "BigID's classification findings arrive scored by confidence and are meant to route to a human reviewer before a label is treated as final — auto-apply is a configuration choice, not the default.",
+      immuta:
+        "Immuta has no draft-suggestion surface of its own; the human-decides step here happens upstream, at whichever tool proposes the classification Immuta's policy will act on.",
+      "power-bi":
+        "Copilot-drafted report content is visibly distinct until a report author reviews and publishes it, and certification/endorsement remains a separate, explicit steward action Copilot cannot grant itself.",
+    },
   },
   {
     key: "governance-as-code",
@@ -124,6 +194,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "Proven engineering pattern applied to governance in regulated environments. Typical result: per-product governance cost declines with each onboarding as patterns compound, and configuration drift findings disappear from audits.",
     capabilities: ["access_policy", "data_quality", "classification", "semantic_layer"],
     obligationKeys: ["sox-icfr", "naic-model-audit-rule"],
+    platformNotes: {
+      "idmc-cdgc":
+        "Classifications, glossary structures, and CDQ rules deploy through CDGC's REST APIs from a CI pipeline, so the same definition set that passed review is what actually lands in the tool, not a hand-re-entered copy.",
+      snowflake:
+        "Masking policies, row-access policies, and tags are DDL — version-controlled, code-reviewed, and applied via CI the same as a schema migration, which is the strongest governance-as-code fit of any platform in the stack.",
+      databricks:
+        "Unity Catalog grants, tags, and table constraints are managed as Terraform or Databricks CLI resources, so access and classification state is declared in code rather than clicked through the workspace UI.",
+      bigid:
+        "Classifier policies and scan configurations are managed through BigID's API, letting a pipeline deploy a tuned classification policy identically across environments instead of re-tuning per environment by hand.",
+      immuta:
+        "Immuta policies are authored as versioned policy-as-code definitions and deployed via API, which is the point of the platform — policy drift between dev, test, and prod is close to the failure mode Immuta was built to prevent.",
+      "power-bi":
+        "Certified dataset and endorsement state can be managed via the Power BI REST API and deployment pipelines, though report-level content still depends on authors following the pipeline rather than publishing ad hoc from Desktop.",
+    },
   },
   {
     key: "govern-at-inception",
@@ -187,6 +271,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "brokerage-mga":
         "Carrier data shared into a broker or MGA estate carries contractual as well as regulatory purpose limits; policy must encode the carrier agreement, not just the statute.",
     },
+    platformNotes: {
+      "idmc-cdgc":
+        "CDGC can model the purpose taxonomy itself as governed reference data, so 'fraud-analytics purpose' is a stewarded, versioned value rather than a string baked into policy code.",
+      snowflake:
+        "Purpose-aware conditions express as row-access policies and conditional masking policies keyed on a session or role attribute carrying the declared purpose, enforced natively at query time.",
+      databricks:
+        "Unity Catalog row filters and column masks support the same attribute-based pattern, evaluated against a user or group attribute that encodes the declared purpose.",
+      bigid:
+        "BigID's role is upstream of enforcement: its sensitivity labels tell the policy which fields are in scope for masking under a given purpose, but it does not evaluate or grant the purpose itself.",
+      immuta:
+        "Purpose-based access is Immuta's signature capability — purposes are first-class policy objects with expiry and recertification built in, which is usually why Immuta gets selected over native RBAC alone.",
+      "power-bi":
+        "Row-level security roles can be mapped to declared purposes, but Power BI RLS is coarser than Immuta-style dynamic masking, so purpose granularity here typically rides on top of a policy decision made upstream in the warehouse.",
+    },
   },
   {
     key: "agents-on-metadata-only",
@@ -215,6 +313,20 @@ export const BEST_PRACTICES: BestPractice[] = [
       "Designed outcome of instrumented agent operations. Typical result: per-product governance effort visibly declines release over release, and the economics case for scaling is made from telemetry rather than anecdote.",
     capabilities: ["stewardship_ops", "data_quality", "catalog_metadata"],
     obligationKeys: ["naic-ai-model-bulletin", "asop-56"],
+    platformNotes: {
+      "idmc-cdgc":
+        "CLAIRE suggestion and acceptance events are queryable through CDGC's audit and activity APIs, giving a direct feed for a per-agent leverage dashboard without a separate telemetry build.",
+      snowflake:
+        "Cortex function calls and query history are logged in Snowflake's account usage views, so leverage measurement can be computed as a scheduled query against native telemetry rather than a bolted-on log pipeline.",
+      databricks:
+        "Databricks Assistant usage and Lakehouse Monitoring alert-to-resolution timing are both available via system tables, making steward-time-saved a queryable metric rather than a manually reconstructed one.",
+      bigid:
+        "BigID's classification review workflow logs acceptance and rejection per finding, which is the raw input a leverage metric needs before it can be trusted as more than an assertion.",
+      immuta:
+        "Immuta's policy change and access-grant audit log supports measuring cycle-time reduction on access requests, one of the clearest leverage numbers a purpose-based-access rollout can point to.",
+      "power-bi":
+        "Usage metrics and Copilot interaction logs (where enabled) show how often AI-assisted content gets published versus discarded, a proxy for measuring whether Copilot leverage is real or just switched on.",
+    },
   },
   {
     key: "named-trainees-demonstrated-readiness",

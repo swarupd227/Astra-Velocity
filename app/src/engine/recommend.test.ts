@@ -3,14 +3,22 @@ import type {
   BestPractice,
   Dashboard,
   Element,
+  FrictionPattern,
   Obligation,
+  Platform,
+  PlatformCategory,
+  PlatformKey,
   Scenario,
   Sector,
 } from "@/content/types";
 import {
   computeCoverage,
+  computeRoleMap,
   recommendDashboards,
   recommendElements,
+  scoreElement,
+  unionPlatformKeys,
+  type ComposeInput,
   type EngineContext,
 } from "./recommend";
 
@@ -126,10 +134,35 @@ function ctx(elements: Element[]): EngineContext {
     dashboards,
     bestPractices: [practice],
     obligations: [obligation],
+    platforms: [],
+    frictionPatterns: [],
   };
 }
 
-const input = { sector: "pc-personal", scenario: "report-integrity" } as const;
+const input: ComposeInput = {
+  sector: "pc-personal",
+  scenario: "report-integrity",
+  platformKeys: [],
+};
+
+/** Self-contained platform fixture — uses real PlatformKey enum values, fabricated data. */
+function makePlatform(
+  key: PlatformKey,
+  category: PlatformCategory,
+  capabilityRoles: Platform["capabilityRoles"],
+): Platform {
+  return {
+    key,
+    name: key,
+    vendor: "Vendor",
+    category,
+    tier: "anchor",
+    summary: "s",
+    capabilityRoles,
+    nativeAi: { name: "AI", description: "d" },
+    marketContext: "m",
+  };
+}
 
 describe("recommendElements", () => {
   it("scores signature-fit elements as core and irrelevant ones drop out", () => {
@@ -229,5 +262,151 @@ describe("computeCoverage", () => {
     const report = computeCoverage(els, scenario);
     expect(report.overall).toBe(100);
     expect(report.gaps).toEqual([]);
+  });
+});
+
+describe("scoreElement — platform fit", () => {
+  const platforms: Platform[] = [
+    { ...makePlatform("snowflake", "warehouse-lakehouse", { data_quality: "enforces" }), name: "Snowflake" },
+  ];
+
+  it("an element with strong platformAffinity to a selected platform scores higher and carries a platform-fit reason", () => {
+    const base = makeElement({
+      key: "el",
+      scenarioAffinity: { "report-integrity": 1 },
+      sectorAffinity: { "pc-personal": 1 },
+    });
+    const withPlatform = makeElement({
+      key: "el",
+      scenarioAffinity: { "report-integrity": 1 },
+      sectorAffinity: { "pc-personal": 1 },
+      platformAffinity: { snowflake: 3 },
+    });
+
+    const baseResult = scoreElement(base, { ...input, platformKeys: [] }, sector, scenario, {
+      platforms,
+    });
+    const fitResult = scoreElement(
+      withPlatform,
+      { ...input, platformKeys: ["snowflake"] },
+      sector,
+      scenario,
+      { platforms },
+    );
+
+    expect(fitResult.score).toBeGreaterThan(baseResult.score);
+    expect(fitResult.reasons.some((r) => r.includes("Snowflake"))).toBe(true);
+  });
+
+  it("an element with no platformAffinity field is unaffected by the selected platform stack (same score as before this change)", () => {
+    // Fixture identical to the "obligation alignment" test's withObligation element,
+    // minus platformAffinity — proves platform scoring adds nothing when absent.
+    const el = makeElement({
+      key: "with-ob",
+      scenarioAffinity: { "report-integrity": 1 },
+      sectorAffinity: { "pc-personal": 1 },
+      obligationKeys: ["schedule-p"],
+    });
+
+    const withoutPlatformKeys = scoreElement(el, { ...input, platformKeys: [] }, sector, scenario, {
+      platforms,
+    });
+    const withPlatformKeys = scoreElement(
+      el,
+      { ...input, platformKeys: ["snowflake"] },
+      sector,
+      scenario,
+      { platforms },
+    );
+
+    expect(withPlatformKeys.score).toBe(withoutPlatformKeys.score);
+    expect(withPlatformKeys.reasons).toEqual(withoutPlatformKeys.reasons);
+  });
+});
+
+describe("computeRoleMap", () => {
+  const platforms: Platform[] = [
+    makePlatform("collibra", "catalog-governance", {
+      catalog_metadata: "anchor",
+      stewardship_ops: "supports",
+    }),
+    makePlatform("snowflake", "warehouse-lakehouse", { data_quality: "enforces" }),
+    makePlatform("immuta", "access-policy", { access_policy: "anchor" }),
+    makePlatform("bigid", "classification-discovery", {
+      classification: "anchor",
+      access_policy: "supports",
+    }),
+  ];
+
+  const frictionPatterns: FrictionPattern[] = [
+    {
+      key: "catalog-warehouse-friction",
+      capability: "catalog_metadata",
+      involvedCategories: ["catalog-governance", "warehouse-lakehouse"],
+      title: "Catalog vs warehouse drift",
+      description: "d",
+    },
+    {
+      key: "access-classification-friction",
+      capability: "access_policy",
+      involvedCategories: ["access-policy", "classification-discovery"],
+      title: "Access policy needs classification first",
+      description: "d",
+    },
+    {
+      key: "bi-warehouse-friction",
+      capability: "semantic_layer",
+      involvedCategories: ["bi-consumption", "warehouse-lakehouse"],
+      title: "BI semantics drift from warehouse",
+      description: "d",
+    },
+  ];
+
+  const roleMapInput = {
+    platformKeys: ["collibra", "snowflake", "immuta", "bigid"] as PlatformKey[],
+  };
+
+  it("buckets anchor/supports/enforces correctly per capability", () => {
+    const report = computeRoleMap(roleMapInput, { platforms, frictionPatterns });
+    expect(report.byCapability.find((r) => r.capability === "catalog_metadata")?.anchors).toEqual([
+      "collibra",
+    ]);
+    expect(
+      report.byCapability.find((r) => r.capability === "stewardship_ops")?.supports,
+    ).toEqual(["collibra"]);
+    expect(report.byCapability.find((r) => r.capability === "data_quality")?.enforces).toEqual([
+      "snowflake",
+    ]);
+    expect(report.byCapability.find((r) => r.capability === "access_policy")?.anchors).toEqual([
+      "immuta",
+    ]);
+    expect(report.byCapability.find((r) => r.capability === "access_policy")?.supports).toEqual([
+      "bigid",
+    ]);
+  });
+
+  it("matches a friction pattern only when ALL its involved categories are present, not a subset", () => {
+    const report = computeRoleMap(roleMapInput, { platforms, frictionPatterns });
+    const matchedKeys = report.frictionMatches.map((m) => m.pattern.key);
+    expect(matchedKeys).toContain("catalog-warehouse-friction");
+    expect(matchedKeys).toContain("access-classification-friction");
+    // bi-consumption is not represented in the selected stack — must not match.
+    expect(matchedKeys).not.toContain("bi-warehouse-friction");
+  });
+
+  it("lists capabilities with zero role coverage as uncovered", () => {
+    const report = computeRoleMap(roleMapInput, { platforms, frictionPatterns });
+    expect(report.uncoveredCapabilities.sort()).toEqual(["lineage", "semantic_layer"].sort());
+    expect(report.uncoveredCapabilities).not.toContain("catalog_metadata");
+  });
+});
+
+describe("unionPlatformKeys", () => {
+  it("dedupes across primary and multiple variants, order-independent", () => {
+    const result = unionPlatformKeys(
+      ["snowflake", "collibra"],
+      [{ platformKeys: ["collibra", "immuta"] }, { platformKeys: ["snowflake", "bigid", "immuta"] }],
+    );
+    expect([...result].sort()).toEqual(["bigid", "collibra", "immuta", "snowflake"].sort());
   });
 });

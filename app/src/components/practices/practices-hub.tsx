@@ -5,9 +5,13 @@ import { useMemo, useState } from "react";
 import {
   CAPABILITIES,
   CAPABILITY_LABELS,
+  PLATFORM_CATEGORIES,
+  PLATFORM_CATEGORY_LABELS,
   SECTOR_KEYS,
   type BestPractice,
   type Capability,
+  type Platform,
+  type PlatformKey,
   type SectorKey,
 } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +28,28 @@ export function PracticesHub({
   sectors,
   elements,
   obligations,
+  platforms,
 }: {
   practices: BestPractice[];
   sectors: SectorOption[];
   elements: ElementRef[];
   obligations: ObligationRef[];
+  platforms: Platform[];
 }) {
   const [capability, setCapability] = useState<"" | Capability>("");
   const [sector, setSector] = useState<"" | SectorKey>("");
+  const [platform, setPlatform] = useState<"" | PlatformKey>("");
+
+  const groupedPlatforms = useMemo(
+    () =>
+      PLATFORM_CATEGORIES.map((category) => ({
+        category,
+        items: platforms.filter((p) => p.category === category),
+      })).filter((g) => g.items.length > 0),
+    [platforms],
+  );
+
+  const activePlatform = platform ? platforms.find((p) => p.key === platform) ?? null : null;
 
   const orderedSectors = useMemo(
     () =>
@@ -69,7 +87,7 @@ export function PracticesHub({
   return (
     <div>
       {/* Filters */}
-      <div className="grid gap-3 sm:max-w-xl sm:grid-cols-2">
+      <div className="grid gap-3 sm:max-w-3xl sm:grid-cols-3">
         <Select
           value={capability}
           onChange={(e) => setCapability(e.target.value as "" | Capability)}
@@ -94,6 +112,22 @@ export function PracticesHub({
             </option>
           ))}
         </Select>
+        <Select
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value as "" | PlatformKey)}
+          aria-label="Highlight platform notes"
+        >
+          <option value="">All platforms</option>
+          {groupedPlatforms.map(({ category, items }) => (
+            <optgroup key={category} label={PLATFORM_CATEGORY_LABELS[category]}>
+              {items.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </Select>
       </div>
 
       <p className="mt-3 text-xs text-slate-500">
@@ -104,6 +138,7 @@ export function PracticesHub({
         {filtered.map((practice) => {
           const ops = operationalizedBy.get(practice.key) ?? [];
           const note = activeSector ? practice.sectorNotes?.[activeSector.key] : undefined;
+          const platformNote = activePlatform ? practice.platformNotes?.[activePlatform.key] : undefined;
           return (
             <Card key={practice.key}>
               <CardHeader>
@@ -115,6 +150,12 @@ export function PracticesHub({
                   <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-800 dark:text-teal-200">
                     <span className="font-semibold">In {activeSector?.name}: </span>
                     {note}
+                  </div>
+                )}
+                {platformNote && (
+                  <div className="rounded-xl border border-teal-500/40 bg-teal-500/10 p-3 text-sm text-teal-800 dark:text-teal-200">
+                    <span className="font-semibold">On {activePlatform?.name}: </span>
+                    {platformNote}
                   </div>
                 )}
 

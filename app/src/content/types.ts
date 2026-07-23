@@ -90,6 +90,76 @@ const Key = z
 /** 0 = not relevant … 3 = signature fit. Omitted keys default to 0. */
 const AffinitySchema = z.number().int().min(0).max(3);
 
+// ---------- Technology & Platform stack ----------
+
+/** RFP-anchor six (named-technology evaluation criterion) + market-realistic alternates. */
+export const PLATFORM_KEYS = [
+  "idmc-cdgc",
+  "snowflake",
+  "databricks",
+  "bigid",
+  "immuta",
+  "power-bi",
+  "collibra",
+  "atlan",
+  "icedq",
+  "dbt",
+  "azure-purview",
+  "ataccama",
+] as const;
+export const PlatformKeySchema = z.enum(PLATFORM_KEYS);
+export type PlatformKey = z.infer<typeof PlatformKeySchema>;
+
+export const PLATFORM_CATEGORIES = [
+  "catalog-governance",
+  "warehouse-lakehouse",
+  "classification-discovery",
+  "access-policy",
+  "data-quality",
+  "bi-consumption",
+] as const;
+export const PlatformCategorySchema = z.enum(PLATFORM_CATEGORIES);
+export type PlatformCategory = z.infer<typeof PlatformCategorySchema>;
+
+export const PLATFORM_CATEGORY_LABELS: Record<PlatformCategory, string> = {
+  "catalog-governance": "Catalog & Governance",
+  "warehouse-lakehouse": "Warehouse & Lakehouse",
+  "classification-discovery": "Classification & Discovery",
+  "access-policy": "Access & Policy",
+  "data-quality": "Data Quality",
+  "bi-consumption": "BI & Consumption",
+};
+
+export const CapabilityRoleSchema = z.enum(["anchor", "supports", "enforces"]);
+export type CapabilityRole = z.infer<typeof CapabilityRoleSchema>;
+
+export const PlatformSchema = z.object({
+  key: PlatformKeySchema,
+  name: z.string(),
+  vendor: z.string(),
+  category: PlatformCategorySchema,
+  /** anchor = one of the RFP's named six; alternate = market-realistic variant. */
+  tier: z.enum(["anchor", "alternate"]),
+  summary: z.string(),
+  capabilityRoles: z.partialRecord(CapabilitySchema, CapabilityRoleSchema),
+  nativeAi: z.object({
+    name: z.string(),
+    description: z.string().describe("honest — note when native AI is thin or automation-only"),
+  }),
+  marketContext: z.string().describe("when this is typically the market's choice"),
+});
+export type Platform = z.infer<typeof PlatformSchema>;
+
+export const FrictionPatternSchema = z.object({
+  key: Key,
+  capability: CapabilitySchema,
+  /** Matched against a selected stack by category overlap, not exact platform pairs. */
+  involvedCategories: z.array(PlatformCategorySchema).min(2),
+  title: z.string(),
+  description: z.string(),
+});
+export type FrictionPattern = z.infer<typeof FrictionPatternSchema>;
+
 // ---------- Ontology ----------
 
 export const ValueChainStageSchema = z.object({
@@ -350,6 +420,13 @@ export const ElementSchema = z.object({
     .array(z.string())
     .describe("vendor-generic capability tags with named examples, e.g. 'catalog-suite (Informatica CDGC, Collibra, Atlan)'"),
   agentMeta: AgentMetaSchema.optional(),
+  /** How strongly this element targets each platform (0-3, omitted = 0). */
+  platformAffinity: z.partialRecord(PlatformKeySchema, AffinitySchema).optional(),
+  /** Concrete "on this platform, it looks like…" notes — bounded to the elements where it's genuinely differentiated. */
+  platformVariants: z
+    .array(z.object({ platformKey: PlatformKeySchema, note: z.string() }))
+    .max(6)
+    .optional(),
 });
 export type Element = z.infer<typeof ElementSchema>;
 
@@ -365,6 +442,8 @@ export const BestPracticeSchema = z.object({
   capabilities: z.array(CapabilitySchema).min(1),
   obligationKeys: z.array(Key).optional(),
   sectorNotes: z.partialRecord(SectorKeySchema, z.string()).optional(),
+  /** How this practice looks concretely on a given platform — bounded to the anchor six. */
+  platformNotes: z.partialRecord(PlatformKeySchema, z.string()).optional(),
 });
 export type BestPractice = z.infer<typeof BestPracticeSchema>;
 
@@ -399,6 +478,8 @@ export const ContentBundleSchema = z.object({
   elements: z.array(ElementSchema).min(60),
   bestPractices: z.array(BestPracticeSchema).min(20),
   dashboards: z.array(DashboardSchema).min(12),
+  platforms: z.array(PlatformSchema).length(PLATFORM_KEYS.length),
+  frictionPatterns: z.array(FrictionPatternSchema).min(6),
 });
 export type ContentBundle = z.infer<typeof ContentBundleSchema>;
 
@@ -411,6 +492,8 @@ export const CONTENT_KINDS = [
   "element",
   "best-practice",
   "dashboard",
+  "platform",
+  "friction-pattern",
 ] as const;
 export type ContentKind = (typeof CONTENT_KINDS)[number];
 

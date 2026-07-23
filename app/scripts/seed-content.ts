@@ -40,6 +40,8 @@ async function main() {
     ["element", contentBundle.elements],
     ["best-practice", contentBundle.bestPractices],
     ["dashboard", contentBundle.dashboards],
+    ["platform", contentBundle.platforms],
+    ["friction-pattern", contentBundle.frictionPatterns],
   ];
 
   let inserted = 0;

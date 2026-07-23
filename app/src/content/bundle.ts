@@ -8,6 +8,8 @@ import { ELEMENTS } from "./data/elements";
 import { BEST_PRACTICES } from "./data/best-practices";
 import { DASHBOARDS } from "./data/dashboards";
 import { ARTIFACTS } from "./data/artifacts";
+import { PLATFORMS } from "./data/platforms";
+import { FRICTION_PATTERNS } from "./data/friction-patterns";
 
 const elementKeys = new Set(ELEMENTS.map((e) => e.key));
 for (const key of Object.keys(ARTIFACTS)) {
@@ -31,4 +33,6 @@ export const contentBundle: ContentBundle = ContentBundleSchema.parse({
   elements: elementsWithArtifacts,
   bestPractices: BEST_PRACTICES,
   dashboards: DASHBOARDS,
+  platforms: PLATFORMS,
+  frictionPatterns: FRICTION_PATTERNS,
 });

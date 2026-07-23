@@ -3,8 +3,8 @@ import { ArrowLeft } from "lucide-react";
 import { contentStore } from "@/content/store";
 import type { SectorKey } from "@/content/types";
 import {
-  recommendDashboards,
   recommendElements,
+  unionPlatformKeys,
   type EngineContext,
 } from "@/engine/recommend";
 import { Badge } from "@/components/ui/badge";
@@ -143,17 +143,31 @@ export default async function ComposerPage({
   }
 
   // ---------- Composition step ----------
-  const [elements, dashboards, bestPractices, packs] = await Promise.all([
+  const [elements, dashboards, bestPractices, packs, platforms, frictionPatterns] = await Promise.all([
     contentStore.elements(),
     contentStore.dashboards(),
     contentStore.bestPractices(),
     contentStore.packs(),
+    contentStore.platforms(),
+    contentStore.frictionPatterns(),
   ]);
 
-  const ctx: EngineContext = { sectors, scenarios, elements, dashboards, bestPractices, obligations };
-  const input = { sector: sector.key, scenario: scenario.key };
+  const ctx: EngineContext = {
+    sectors,
+    scenarios,
+    elements,
+    dashboards,
+    bestPractices,
+    obligations,
+    platforms,
+    frictionPatterns,
+  };
+  // Fresh composition (no project yet): default the primary stack to the six
+  // anchor-tier platforms — derived, never hardcoded.
+  const defaultAnchorKeys = platforms.filter((p) => p.tier === "anchor").map((p) => p.key);
+  const platformKeys = unionPlatformKeys(defaultAnchorKeys, []) as typeof defaultAnchorKeys;
+  const input = { sector: sector.key, scenario: scenario.key, platformKeys };
   const recommendations = recommendElements(input, ctx);
-  const dashboardRecs = recommendDashboards(input, ctx).slice(0, 6);
   const packCodes = Object.fromEntries(packs.map((p) => [p.key, p.code]));
 
   return (
@@ -181,12 +195,16 @@ export default async function ComposerPage({
       </header>
 
       <ComposerCanvas
-        sectorKey={sector.key}
-        sectorName={sector.name}
+        sector={sector}
         scenario={scenario}
-        recommendations={recommendations}
-        dashboards={dashboardRecs}
+        elements={elements}
+        dashboardPool={dashboards}
+        bestPractices={bestPractices}
+        obligations={obligations}
+        platforms={platforms}
+        frictionPatterns={frictionPatterns}
         packCodes={packCodes}
+        defaultPlatformKeys={defaultAnchorKeys}
       />
     </div>
   );

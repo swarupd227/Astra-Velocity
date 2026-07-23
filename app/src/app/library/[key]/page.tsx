@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IntegrationNote } from "@/components/integration-note";
 import { ArtifactViewer } from "@/components/library/artifact-viewer";
 import { resolveArtifact } from "@/components/library/artifact-stat";
+import { PlatformVariantNotes } from "@/components/library/platform-variant-notes";
 import { TYPE_LABELS } from "@/components/library/type-labels";
 import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
 
@@ -109,12 +110,13 @@ export default async function ElementDetailPage({
   params: Promise<{ key: string }>;
 }) {
   const { key } = await params;
-  const [elements, packs, bestPractices, obligations, kpis] = await Promise.all([
+  const [elements, packs, bestPractices, obligations, kpis, platforms] = await Promise.all([
     contentStore.elements(),
     contentStore.packs(),
     contentStore.bestPractices(),
     contentStore.obligations(),
     contentStore.kpis(),
+    contentStore.platforms(),
   ]);
 
   const element = elements.find((el) => el.key === key);
@@ -138,6 +140,12 @@ export default async function ElementDetailPage({
   const linkedKpis = (element.kpiKeys ?? [])
     .map((k) => kpis.find((kpi) => kpi.key === k))
     .filter((kpi) => kpi !== undefined);
+  const platformNameByKey = new Map(platforms.map((p) => [p.key, p.name]));
+  const platformVariantNotes = (element.platformVariants ?? []).map((v) => ({
+    platformKey: v.platformKey,
+    platformName: platformNameByKey.get(v.platformKey) ?? v.platformKey,
+    note: v.note,
+  }));
 
   return (
     <div className="space-y-6">
@@ -198,6 +206,8 @@ export default async function ElementDetailPage({
               </div>
             )
           )}
+
+          {platformVariantNotes.length > 0 && <PlatformVariantNotes variants={platformVariantNotes} />}
 
           <Card>
             <CardHeader>

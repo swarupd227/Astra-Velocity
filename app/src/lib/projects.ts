@@ -2,9 +2,12 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { auditLog, projects, workspaceMembers } from "@/db/schema";
+import type { ProjectPlatformVariant } from "@/db/schema/projects";
 import { contentStore } from "@/content/store";
 import { hasPermission, type Role } from "@/lib/roles";
 import { SCENARIO_KEYS, SECTOR_KEYS } from "@/content/types";
+
+const MAX_PLATFORM_VARIANTS = 4;
 
 /**
  * Server-only project data access. Every mutation re-checks the session and
@@ -20,6 +23,8 @@ export interface CreateProjectInput {
   sectorKey: string;
   scenarioKey: string;
   selectedElementKeys: string[];
+  platformKeys?: string[];
+  platformVariants?: ProjectPlatformVariant[];
   notes?: string | null;
 }
 
@@ -93,10 +98,37 @@ async function validateContentKeys(
   }
 }
 
+/** Validate a project's platform stack against published platform content. */
+async function validatePlatformStack(
+  platformKeys: string[],
+  platformVariants: ProjectPlatformVariant[],
+): Promise<void> {
+  if (platformVariants.length > MAX_PLATFORM_VARIANTS) {
+    throw new Error(`At most ${MAX_PLATFORM_VARIANTS} market variants are allowed`);
+  }
+  for (const variant of platformVariants) {
+    if (!variant.label.trim()) {
+      throw new Error("Every market variant requires a non-empty label");
+    }
+  }
+  const platforms = await contentStore.platforms();
+  const known = new Set<string>(platforms.map((p) => p.key));
+  const unknown = [
+    ...platformKeys,
+    ...platformVariants.flatMap((v) => v.platformKeys),
+  ].filter((k) => !known.has(k));
+  if (unknown.length > 0) {
+    throw new Error(`Unknown platform keys: ${[...new Set(unknown)].join(", ")}`);
+  }
+}
+
 export async function createProject(input: CreateProjectInput): Promise<Project> {
   const user = await requireUser();
   requireComposePermission(user);
+  const platformKeys = input.platformKeys ?? [];
+  const platformVariants = input.platformVariants ?? [];
   await validateContentKeys(input.sectorKey, input.scenarioKey, input.selectedElementKeys);
+  await validatePlatformStack(platformKeys, platformVariants);
 
   const workspaceId = await firstWorkspaceIdFor(user.id);
   const [project] = await db
@@ -108,6 +140,8 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
       sectorKey: input.sectorKey,
       scenarioKey: input.scenarioKey,
       selectedElementKeys: [...new Set(input.selectedElementKeys)],
+      platformKeys: [...new Set(platformKeys)],
+      platformVariants,
       notes: input.notes ?? null,
       createdBy: user.id,
     })

@@ -5,18 +5,22 @@ import {
   BestPracticeSchema,
   DashboardSchema,
   ElementSchema,
+  FrictionPatternSchema,
   KpiSchema,
   ObligationSchema,
   PackSchema,
+  PlatformSchema,
   ScenarioSchema,
   SectorSchema,
   type BestPractice,
   type ContentKind,
   type Dashboard,
   type Element,
+  type FrictionPattern,
   type Kpi,
   type Obligation,
   type Pack,
+  type Platform,
   type Scenario,
   type Sector,
 } from "./types";
@@ -50,4 +54,7 @@ export const contentStore = {
   bestPractices: () =>
     loadPublished<BestPractice>("best-practice", (raw) => BestPracticeSchema.parse(raw)),
   dashboards: () => loadPublished<Dashboard>("dashboard", (raw) => DashboardSchema.parse(raw)),
+  platforms: () => loadPublished<Platform>("platform", (raw) => PlatformSchema.parse(raw)),
+  frictionPatterns: () =>
+    loadPublished<FrictionPattern>("friction-pattern", (raw) => FrictionPatternSchema.parse(raw)),
 };

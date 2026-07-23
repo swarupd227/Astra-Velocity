@@ -16,6 +16,7 @@ export function checkBundleIntegrity(bundle: ContentBundle): IntegrityIssue[] {
   const kpiKeys = new Set(bundle.kpis.map((k) => k.key));
   const packKeys = new Set(bundle.packs.map((p) => p.key));
   const practiceKeys = new Set(bundle.bestPractices.map((b) => b.key));
+  const platformKeys = new Set<string>(bundle.platforms.map((p) => p.key));
 
   const dupes = (keys: string[], where: string) => {
     const seen = new Set<string>();
@@ -32,6 +33,8 @@ export function checkBundleIntegrity(bundle: ContentBundle): IntegrityIssue[] {
   dupes(bundle.elements.map((e) => e.key), "elements");
   dupes(bundle.bestPractices.map((b) => b.key), "bestPractices");
   dupes(bundle.dashboards.map((d) => d.key), "dashboards");
+  dupes(bundle.platforms.map((p) => p.key), "platforms");
+  dupes(bundle.frictionPatterns.map((f) => f.key), "frictionPatterns");
 
   for (const sector of bundle.sectors) {
     for (const key of sector.obligationKeys) {
@@ -67,6 +70,17 @@ export function checkBundleIntegrity(bundle: ContentBundle): IntegrityIssue[] {
       issues.push({ where: `element ${el.key}`, problem: "no non-zero scenario affinity" });
     if (!hasSector)
       issues.push({ where: `element ${el.key}`, problem: "no non-zero sector affinity" });
+    for (const key of Object.keys(el.platformAffinity ?? {})) {
+      if (!platformKeys.has(key))
+        issues.push({ where: `element ${el.key}`, problem: `unknown platform "${key}"` });
+    }
+    for (const variant of el.platformVariants ?? []) {
+      if (!platformKeys.has(variant.platformKey))
+        issues.push({
+          where: `element ${el.key}`,
+          problem: `unknown platform "${variant.platformKey}" in platformVariants`,
+        });
+    }
   }
 
   for (const bp of bundle.bestPractices) {
@@ -74,6 +88,18 @@ export function checkBundleIntegrity(bundle: ContentBundle): IntegrityIssue[] {
       if (!obligationKeys.has(key))
         issues.push({ where: `best practice ${bp.key}`, problem: `unknown obligation "${key}"` });
     }
+    for (const key of Object.keys(bp.platformNotes ?? {})) {
+      if (!platformKeys.has(key))
+        issues.push({ where: `best practice ${bp.key}`, problem: `unknown platform "${key}"` });
+    }
+  }
+
+  for (const fp of bundle.frictionPatterns) {
+    if (fp.involvedCategories.length < 2)
+      issues.push({
+        where: `friction pattern ${fp.key}`,
+        problem: "must involve at least 2 categories to be a cross-tool tension",
+      });
   }
 
   // Every pack should have at least one element; every practice should justify something.

@@ -3,9 +3,11 @@ import {
   BestPracticeSchema,
   DashboardSchema,
   ElementSchema,
+  FrictionPatternSchema,
   KpiSchema,
   ObligationSchema,
   PackSchema,
+  PlatformSchema,
   ScenarioSchema,
   SectorSchema,
   type ContentKind,
@@ -21,6 +23,8 @@ export const KIND_SCHEMAS: Record<ContentKind, ZodType> = {
   element: ElementSchema,
   "best-practice": BestPracticeSchema,
   dashboard: DashboardSchema,
+  platform: PlatformSchema,
+  "friction-pattern": FrictionPatternSchema,
 };
 
 export const KIND_LABELS: Record<ContentKind, string> = {
@@ -32,6 +36,8 @@ export const KIND_LABELS: Record<ContentKind, string> = {
   element: "Element",
   "best-practice": "Best Practice",
   dashboard: "Dashboard",
+  platform: "Platform",
+  "friction-pattern": "Friction Pattern",
 };
 
 /** Display name from a payload: most kinds use `name`, best practices use `title`. */

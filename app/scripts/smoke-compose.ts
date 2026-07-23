@@ -12,10 +12,12 @@ const ctx = {
   dashboards: contentBundle.dashboards,
   bestPractices: contentBundle.bestPractices,
   obligations: contentBundle.obligations,
+  platforms: contentBundle.platforms,
+  frictionPatterns: contentBundle.frictionPatterns,
 };
 
-const recs = recommendElements({ sector, scenario }, ctx);
-const dashes = recommendDashboards({ sector, scenario }, ctx);
+const recs = recommendElements({ sector, scenario, platformKeys: [] }, ctx);
+const dashes = recommendDashboards({ sector, scenario, platformKeys: [] }, ctx);
 
 console.log(`\n=== ${sector} × ${scenario} — ${recs.length} elements, ${dashes.length} dashboards ===\n`);
 for (const r of recs.slice(0, 12)) {

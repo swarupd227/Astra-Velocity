@@ -5,10 +5,14 @@ import {
   CAPABILITIES,
   CAPABILITY_LABELS,
   ELEMENT_TYPES,
+  PLATFORM_CATEGORIES,
+  PLATFORM_CATEGORY_LABELS,
   type Capability,
   type Element,
   type ElementType,
   type Pack,
+  type Platform,
+  type PlatformKey,
 } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
@@ -20,20 +24,32 @@ export function LibraryBrowser({
   packs,
   elements,
   stats,
+  platforms,
 }: {
   packs: Pack[];
   elements: Element[];
   /** Element key → concrete artifact stat ("24 terms"), computed server-side. */
   stats: Record<string, string>;
+  platforms: Platform[];
 }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<"" | ElementType>("");
   const [capability, setCapability] = useState<"" | Capability>("");
   const [packKey, setPackKey] = useState("");
+  const [platformKey, setPlatformKey] = useState<"" | PlatformKey>("");
 
   const sortedPacks = useMemo(
     () => [...packs].sort((a, b) => a.code.localeCompare(b.code)),
     [packs],
+  );
+
+  const groupedPlatforms = useMemo(
+    () =>
+      PLATFORM_CATEGORIES.map((category) => ({
+        category,
+        items: platforms.filter((p) => p.category === category),
+      })).filter((g) => g.items.length > 0),
+    [platforms],
   );
 
   const filtered = useMemo(() => {
@@ -42,6 +58,10 @@ export function LibraryBrowser({
       if (type && el.type !== type) return false;
       if (capability && !el.capabilities.includes(capability)) return false;
       if (packKey && el.packKey !== packKey) return false;
+      // Skip elements with no platformAffinity data when a platform filter is active.
+      if (platformKey && !(el.platformAffinity && (el.platformAffinity[platformKey] ?? 0) > 0)) {
+        return false;
+      }
       if (q) {
         const haystack = [el.name, el.pitch, el.description, el.soWhat, ...el.toolTags]
           .join(" ")
@@ -50,7 +70,7 @@ export function LibraryBrowser({
       }
       return true;
     });
-  }, [elements, query, type, capability, packKey]);
+  }, [elements, query, type, capability, packKey, platformKey]);
 
   const groups = sortedPacks
     .map((pack) => ({ pack, items: filtered.filter((el) => el.packKey === pack.key) }))
@@ -59,7 +79,7 @@ export function LibraryBrowser({
   return (
     <div>
       {/* Filter row */}
-      <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <Input
           type="search"
           placeholder="Search elements, pitches, tools…"
@@ -101,6 +121,22 @@ export function LibraryBrowser({
             <option key={p.key} value={p.key}>
               {p.code} — {p.name}
             </option>
+          ))}
+        </Select>
+        <Select
+          value={platformKey}
+          onChange={(e) => setPlatformKey(e.target.value as "" | PlatformKey)}
+          aria-label="Filter by platform"
+        >
+          <option value="">All platforms</option>
+          {groupedPlatforms.map(({ category, items }) => (
+            <optgroup key={category} label={PLATFORM_CATEGORY_LABELS[category]}>
+              {items.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </Select>
       </div>

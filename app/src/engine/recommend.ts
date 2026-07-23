@@ -3,7 +3,11 @@ import type {
   Capability,
   Dashboard,
   Element,
+  FrictionPattern,
   Obligation,
+  Platform,
+  PlatformCategory,
+  PlatformKey,
   Scenario,
   ScenarioKey,
   Sector,
@@ -27,11 +31,21 @@ export interface EngineContext {
   dashboards: Dashboard[];
   bestPractices: BestPractice[];
   obligations: Obligation[];
+  platforms: Platform[];
+  frictionPatterns: FrictionPattern[];
 }
 
 export interface ComposeInput {
   sector: SectorKey;
   scenario: ScenarioKey;
+  /**
+   * The EFFECTIVE/union set of platform keys to score element fit against.
+   * The caller is responsible for unioning a project's primary platformKeys
+   * with every ProjectPlatformVariant.platformKeys (see `unionPlatformKeys`)
+   * before constructing this input — this field does not distinguish primary
+   * from variant stacks, it only asks "is this platform in play anywhere".
+   */
+  platformKeys: PlatformKey[];
 }
 
 export interface ElementRecommendation {
@@ -61,9 +75,15 @@ const SCENARIO_WEIGHT = 3;
 const SECTOR_WEIGHT = 2;
 const OBLIGATION_BONUS = 2;
 const EMPHASIS_WEIGHT = 1;
+const PLATFORM_WEIGHT = 2;
 
 function affinity(map: Partial<Record<string, number>>, key: string): number {
   return map[key] ?? 0;
+}
+
+function resolvePlatformNames(keys: PlatformKey[], platforms: Platform[]): string[] {
+  const byKey = new Map(platforms.map((p) => [p.key, p.name]));
+  return keys.map((k) => byKey.get(k)).filter((n): n is string => Boolean(n));
 }
 
 export function scoreElement(
@@ -71,6 +91,7 @@ export function scoreElement(
   input: ComposeInput,
   sector: Sector,
   scenario: Scenario,
+  ctx: Pick<EngineContext, "platforms">,
 ): { score: number; reasons: string[] } {
   const reasons: string[] = [];
   const scenarioFit = affinity(el.scenarioAffinity, input.scenario);
@@ -110,6 +131,36 @@ export function scoreElement(
     }
   }
 
+  // Platform-affinity: an element only needs to fit ONE platform in the selected
+  // stack to be relevant, so we take the max affinity across input.platformKeys
+  // rather than summing (a project runs multiple platforms at once). Elements
+  // without any platformAffinity data are neutral — not excluded, not penalized —
+  // since platform authoring is intentionally bounded to a subset of the library.
+  const platformMap = el.platformAffinity;
+  if (platformMap && input.platformKeys.length > 0) {
+    let platformFit = 0;
+    for (const key of input.platformKeys) {
+      const fit = affinity(platformMap, key);
+      if (fit > platformFit) platformFit = fit;
+    }
+    if (platformFit > 0) score += platformFit * PLATFORM_WEIGHT;
+    if (platformFit >= 2) {
+      const matchedKeys = input.platformKeys.filter(
+        (key) => affinity(platformMap, key) === platformFit,
+      );
+      const names = resolvePlatformNames(matchedKeys, ctx.platforms);
+      if (names.length > 0) {
+        reasons.push(`Strong fit for ${names.join(", ")}`);
+      }
+      const variantNote = el.platformVariants?.find((v) => matchedKeys.includes(v.platformKey));
+      if (variantNote) {
+        const note =
+          variantNote.note.length > 100 ? `${variantNote.note.slice(0, 97)}...` : variantNote.note;
+        reasons.push(note);
+      }
+    }
+  }
+
   return { score, reasons };
 }
 
@@ -127,7 +178,7 @@ export function recommendElements(
 
   const recs: ElementRecommendation[] = [];
   for (const el of ctx.elements) {
-    const { score, reasons } = scoreElement(el, input, sector, scenario);
+    const { score, reasons } = scoreElement(el, input, sector, scenario, ctx);
     if (score <= 0) continue;
 
     const practices = el.bestPracticeKeys
@@ -208,4 +259,101 @@ export function computeCoverage(
     overall: weightTotal === 0 ? 0 : Math.round((weightedSum / weightTotal) * 100),
     gaps,
   };
+}
+
+// ---------- Platform role map & friction analysis ----------
+
+export interface CapabilityRoleMapRow {
+  capability: Capability;
+  /** Platforms in the input set whose capabilityRoles[capability] === "anchor". */
+  anchors: PlatformKey[];
+  /** ..."supports". */
+  supports: PlatformKey[];
+  /** ..."enforces". */
+  enforces: PlatformKey[];
+  hasCoverage: boolean;
+}
+
+export interface MatchedFrictionPattern {
+  pattern: FrictionPattern;
+  /** Which of the pattern's involvedCategories are present in the selected stack. */
+  matchedCategories: PlatformCategory[];
+}
+
+export interface RoleMapReport {
+  /** One row per Capability, in CAPABILITIES order. */
+  byCapability: CapabilityRoleMapRow[];
+  /** Patterns where every involvedCategory is represented in the selected stack. */
+  frictionMatches: MatchedFrictionPattern[];
+  /** Capabilities with zero role coverage across the selected stack. */
+  uncoveredCapabilities: Capability[];
+}
+
+/**
+ * Maps a selected platform stack onto capability roles (anchor/supports/enforces)
+ * and surfaces friction patterns whose full category set is represented — the
+ * "how these tools actually divide the work, and where they'll rub" view.
+ */
+export function computeRoleMap(
+  input: { platformKeys: PlatformKey[] },
+  ctx: Pick<EngineContext, "platforms" | "frictionPatterns">,
+): RoleMapReport {
+  const selectedKeys = new Set(input.platformKeys);
+  const selectedPlatforms = ctx.platforms.filter((p) => selectedKeys.has(p.key));
+
+  const byCapability: CapabilityRoleMapRow[] = CAPABILITIES.map((capability) => {
+    const anchors: PlatformKey[] = [];
+    const supports: PlatformKey[] = [];
+    const enforces: PlatformKey[] = [];
+    for (const platform of selectedPlatforms) {
+      const role = platform.capabilityRoles[capability];
+      if (role === "anchor") anchors.push(platform.key);
+      else if (role === "supports") supports.push(platform.key);
+      else if (role === "enforces") enforces.push(platform.key);
+    }
+    return {
+      capability,
+      anchors,
+      supports,
+      enforces,
+      hasCoverage: anchors.length + supports.length + enforces.length > 0,
+    };
+  });
+
+  const uncoveredCapabilities = byCapability
+    .filter((row) => !row.hasCoverage)
+    .map((row) => row.capability);
+
+  // Matched by category, not exact platform: the selected stack's category set
+  // must be a superset of the pattern's involvedCategories.
+  const selectedCategories = new Set(selectedPlatforms.map((p) => p.category));
+  const frictionMatches: MatchedFrictionPattern[] = ctx.frictionPatterns
+    .filter((pattern) => pattern.involvedCategories.every((c) => selectedCategories.has(c)))
+    .map((pattern) => ({
+      pattern,
+      matchedCategories: pattern.involvedCategories.filter((c) => selectedCategories.has(c)),
+    }));
+
+  return { byCapability, frictionMatches, uncoveredCapabilities };
+}
+
+/**
+ * Dedupe union of a project's primary platform keys and every named variant's
+ * platform keys — the EFFECTIVE stack used to build ComposeInput.platformKeys
+ * for element scoring. Order-preserving (primary first), but callers should
+ * treat the result as a set.
+ */
+export function unionPlatformKeys(
+  primary: string[],
+  variants: { platformKeys: string[] }[],
+): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const key of [...primary, ...variants.flatMap((v) => v.platformKeys)]) {
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(key);
+    }
+  }
+  return result;
 }

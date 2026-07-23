@@ -32,6 +32,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "bi (Power BI, Tableau)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, collibra: 3, atlan: 2, "power-bi": 2 },
   },
   {
     key: "life-glossary-starter",
@@ -53,6 +54,7 @@ export const ELEMENTS: Element[] = [
     scenarioAffinity: { "report-integrity": 3, "regulatory-reporting": 2, "actuarial-readiness": 2 },
     effortSavedStewardWeeks: 3,
     toolTags: ["catalog-suite (Informatica CDGC, Collibra, Atlan)"],
+    platformAffinity: { "idmc-cdgc": 3, collibra: 3, atlan: 2, "power-bi": 2 },
   },
   {
     key: "policy-claims-cde-set",
@@ -77,6 +79,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "dq-engine (Informatica CDQ, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, bigid: 2, snowflake: 2 },
   },
   {
     key: "cope-exposure-cde-set",
@@ -100,6 +103,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "dq-engine (Informatica CDQ, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, bigid: 2, snowflake: 2 },
   },
   {
     key: "insurance-dq-rule-library",
@@ -134,6 +138,21 @@ export const ELEMENTS: Element[] = [
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, dbt: 2, icedq: 2, ataccama: 2 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "Authored as a CDQ rule with a Reference table threshold and severity binding, deployed as part of the mapping task that already touches the CDE.",
+      },
+      {
+        platformKey: "dbt",
+        note: "Expressed as a dbt test in the model YAML (`tests: - dbt_utils.expression_is_true: {arguments: {condition: 'earned_premium <= written_premium'}}`), surfaced as a failing build rather than a catalog breach.",
+      },
+      {
+        platformKey: "icedq",
+        note: "Written as a reconciliation rule comparing source and target aggregates across the ETL boundary — iceDQ's native comparison-rule idiom, run as part of the regression test suite.",
+      },
+    ],
   },
 
   // ───────────────────────── VP-02 Governance Agent Pack ─────────────────────────
@@ -164,6 +183,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "agent-runtime (platform-native AI, hosted LLM in client boundary)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, collibra: 2, atlan: 2 },
     agentMeta: {
       drafts:
         "Glossary term candidates, definitions, and business-to-technical association proposals from scan metadata and profiling output.",
@@ -211,6 +231,7 @@ export const ELEMENTS: Element[] = [
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
       "agent-runtime (platform-native AI, hosted LLM in client boundary)",
     ],
+    platformAffinity: { "idmc-cdgc": 2, dbt: 2, icedq: 2, ataccama: 2 },
     agentMeta: {
       drafts:
         "CDE-anchored DQ rule candidates with thresholds, expressed as deployable governance-as-code definitions, with profiling evidence attached.",
@@ -256,6 +277,7 @@ export const ELEMENTS: Element[] = [
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
       "workflow (steward queue, ITSM integration)",
     ],
+    platformAffinity: { "idmc-cdgc": 3 },
     agentMeta: {
       drafts:
         "Prioritized breach queues: deduplicated alert clusters with proposed owner, priority, and suggested remediation route.",
@@ -301,6 +323,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { databricks: 3, "idmc-cdgc": 2, snowflake: 2 },
     agentMeta: {
       drafts:
         "Scanner coverage maps, gap inventories with stitch-cost estimates, and column-level stitch proposals with matching evidence.",
@@ -348,6 +371,7 @@ export const ELEMENTS: Element[] = [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
     ],
+    platformAffinity: { bigid: 3, "idmc-cdgc": 2 },
     agentMeta: {
       drafts:
         "CDE candidacy lists with justification, and sensitive-attribute classification maps aligned to the insurance NPPI taxonomy.",
@@ -390,6 +414,7 @@ export const ELEMENTS: Element[] = [
       "policy-enforcement (Immuta, platform-native RBAC)",
       "ci-cd (Git-based pipeline, policy validation)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, collibra: 2 },
     agentMeta: {
       drafts:
         "Drift reports: standards-vs-configuration deltas with evidence links, severity, and proposed remediation routing.",
@@ -434,6 +459,21 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "policy-enforcement (Immuta, platform-native RBAC)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, databricks: 2, snowflake: 2 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "The schema compiles to CDGC objects — glossary term, CDE registration, and CDQ rule — created via CDGC's REST API, so the definition set and the catalog state are the same artifact.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Access-policy and classification intents in the schema compile to Snowflake tag assignments and masking-policy DDL, applied through the same migration tooling as any schema change.",
+      },
+      {
+        platformKey: "databricks",
+        note: "Compiles to Unity Catalog grant statements and tag assignments via the Databricks CLI/Terraform provider, keeping lakehouse governance state declared alongside the rest of the infrastructure-as-code.",
+      },
+    ],
   },
   {
     key: "gac-ci-pipeline",
@@ -461,6 +501,21 @@ export const ELEMENTS: Element[] = [
       "ci-cd (Git-based pipeline, policy validation)",
       "warehouse (Snowflake, Databricks)",
       "dq-engine (Informatica CDQ, platform-native)",
+    ],
+    platformAffinity: { "idmc-cdgc": 3, databricks: 2, snowflake: 2 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "The deployment job targets CDGC's catalog and CDQ APIs directly — a merged PR becomes a set of API calls that create or update glossary terms, CDE registrations, and rules.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "The deployment job runs generated masking-policy and tag-assignment DDL against Snowflake through a database migration runner, with rollback handled the same as any schema migration.",
+      },
+      {
+        platformKey: "databricks",
+        note: "The deployment job applies Unity Catalog grant and tag changes through the Databricks CLI or Terraform provider, with plan/apply gating in CI mirroring the schema-change safeguards used elsewhere in the lakehouse.",
+      },
     ],
   },
   {
@@ -490,6 +545,21 @@ export const ELEMENTS: Element[] = [
       "warehouse (Snowflake, Databricks)",
       "dq-engine (IceDQ, Informatica CDQ, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, databricks: 2, snowflake: 2, immuta: 1 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "The adapter's last mile calls the CDGC catalog and CDQ APIs; a market running Collibra or Atlan instead swaps this adapter without touching the definition schema itself.",
+      },
+      {
+        platformKey: "immuta",
+        note: "The adapter translates the definition set's access-policy intent into Immuta policy objects via its policy-as-code API — the same intent that, on a stack without Immuta, would compile straight to warehouse-native masking DDL.",
+      },
+      {
+        platformKey: "snowflake",
+        note: "Where no dedicated access-policy platform is present, the adapter compiles policy intent directly to Snowflake masking-policy and tag DDL, absorbing what Immuta would otherwise handle.",
+      },
+    ],
   },
   {
     key: "gac-onboarding-playbook",
@@ -513,6 +583,7 @@ export const ELEMENTS: Element[] = [
     },
     scenarioAffinity: { "greenfield-platform": 3, "ma-integration": 1, "ai-ml-readiness": 1 },
     toolTags: ["ci-cd (Git-based pipeline, policy validation)", "warehouse (Snowflake, Databricks)"],
+    platformAffinity: { "idmc-cdgc": 2, databricks: 2, snowflake: 2 },
   },
 
   // ───────────────────────── VP-04 Governance Command Center ─────────────────────────
@@ -1829,6 +1900,17 @@ export const ELEMENTS: Element[] = [
       "mdm (Informatica MDM, platform-native entity resolution)",
       "dq-engine (Informatica CDQ, platform-native)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, ataccama: 2 },
+    platformVariants: [
+      {
+        platformKey: "idmc-cdgc",
+        note: "Authored as CDQ match-and-merge rules with configurable weight-based scoring, running against the same profiling engine that drives CDGC's classification suggestions.",
+      },
+      {
+        platformKey: "ataccama",
+        note: "Expressed as Ataccama ONE matching rules within its MDM module, where the low-code rule builder is tuned for exactly this deterministic-plus-probabilistic pattern.",
+      },
+    ],
   },
   {
     key: "party-hierarchy-template",
@@ -2183,6 +2265,17 @@ export const ELEMENTS: Element[] = [
       "dq-engine (Informatica CDQ, IceDQ, platform-native)",
       "warehouse (Snowflake, Databricks)",
     ],
+    platformAffinity: { "idmc-cdgc": 2, icedq: 3, snowflake: 1 },
+    platformVariants: [
+      {
+        platformKey: "icedq",
+        note: "Run as iceDQ source-to-target reconciliation test suites — count and balance comparisons by cohort — the exact ETL-testing pattern iceDQ was built for, executed on a schedule through cutover.",
+      },
+      {
+        platformKey: "idmc-cdgc",
+        note: "Authored as CDQ rules bound to the converted CDE set, so post-cutover regression runs land in the same rule inventory and breach queue as steady-state production quality checks.",
+      },
+    ],
   },
   {
     key: "book-transfer-cde-set",
@@ -2213,6 +2306,7 @@ export const ELEMENTS: Element[] = [
       "catalog-suite (Informatica CDGC, Collibra, Atlan)",
       "spreadsheet-model (Excel, Google Sheets)",
     ],
+    platformAffinity: { "idmc-cdgc": 3, bigid: 1, snowflake: 1 },
   },
 
   // ───────────────────────── VP-20 Operating Model & RACI Pack ─────────────────────────

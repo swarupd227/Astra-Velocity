@@ -6,9 +6,10 @@ import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
 export const metadata = { title: "Velocity Pack Library — Astra Velocity" };
 
 export default async function LibraryPage() {
-  const [packs, allElements, scope] = await Promise.all([
+  const [packs, allElements, platforms, scope] = await Promise.all([
     contentStore.packs(),
     contentStore.elements(),
+    contentStore.platforms(),
     getSectorScope(),
   ]);
 
@@ -31,7 +32,7 @@ export default async function LibraryPage() {
         Every reusable element across the 22 Velocity Packs — standards, templates, rule libraries, and agent co-workers. Open a card to work with the asset itself.
       </p>
       <div className="mt-6">
-        <LibraryBrowser packs={packs} elements={elements} stats={stats} />
+        <LibraryBrowser packs={packs} elements={elements} stats={stats} platforms={platforms} />
       </div>
     </section>
   );

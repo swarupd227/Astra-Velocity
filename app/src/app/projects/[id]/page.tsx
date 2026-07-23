@@ -3,11 +3,18 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { contentStore } from "@/content/store";
+import type { PlatformKey } from "@/content/types";
 import { buildBlueprint } from "@/engine/blueprint";
-import { recommendDashboards, type EngineContext } from "@/engine/recommend";
+import {
+  computeRoleMap,
+  recommendDashboards,
+  unionPlatformKeys,
+  type EngineContext,
+} from "@/engine/recommend";
 import { getProject } from "@/lib/projects";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RoleMap, type RoleMapStack } from "@/components/role-map";
 import { PrintButton } from "./print-button";
 
 export const metadata = { title: "Project Blueprint — Astra Velocity" };
@@ -56,7 +63,7 @@ export default async function ProjectBlueprintPage({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [sectors, scenarios, elements, dashboards, bestPractices, obligations] =
+  const [sectors, scenarios, elements, dashboards, bestPractices, obligations, platforms, frictionPatterns] =
     await Promise.all([
       contentStore.sectors(),
       contentStore.scenarios(),
@@ -64,6 +71,8 @@ export default async function ProjectBlueprintPage({
       contentStore.dashboards(),
       contentStore.bestPractices(),
       contentStore.obligations(),
+      contentStore.platforms(),
+      contentStore.frictionPatterns(),
     ]);
 
   const sector = sectors.find((s) => s.key === project.sectorKey);
@@ -73,11 +82,49 @@ export default async function ProjectBlueprintPage({
   const selectedSet = new Set(project.selectedElementKeys);
   const selectedElements = elements.filter((e) => selectedSet.has(e.key));
 
-  const ctx: EngineContext = { sectors, scenarios, elements, dashboards, bestPractices, obligations };
+  // Saved projects default platformKeys/platformVariants to [] on rows created
+  // before this axis existed — the effective (union) set is used for element
+  // scoring; role-map/friction analysis runs per stack below.
+  const projectPlatformKeys = (project.platformKeys ?? []) as PlatformKey[];
+  const projectPlatformVariants = project.platformVariants ?? [];
+  const effectivePlatformKeys = unionPlatformKeys(
+    projectPlatformKeys,
+    projectPlatformVariants,
+  ) as PlatformKey[];
+
+  const ctx: EngineContext = {
+    sectors,
+    scenarios,
+    elements,
+    dashboards,
+    bestPractices,
+    obligations,
+    platforms,
+    frictionPatterns,
+  };
   const dashboardRecs = recommendDashboards(
-    { sector: sector.key, scenario: scenario.key },
+    { sector: sector.key, scenario: scenario.key, platformKeys: effectivePlatformKeys },
     ctx,
   ).slice(0, 6);
+
+  const platformByKey = new Map<string, (typeof platforms)[number]>(platforms.map((p) => [p.key, p]));
+  const selectedAnchorPlatforms = projectPlatformKeys
+    .map((k) => platformByKey.get(k))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p) && p!.tier === "anchor");
+
+  const roleMapStacks: RoleMapStack[] = [
+    {
+      label: "Primary stack",
+      report: computeRoleMap({ platformKeys: projectPlatformKeys }, { platforms, frictionPatterns }),
+    },
+    ...projectPlatformVariants.map((variant, i) => ({
+      label: variant.label.trim() || `Variant ${i + 1}`,
+      report: computeRoleMap(
+        { platformKeys: variant.platformKeys as PlatformKey[] },
+        { platforms, frictionPatterns },
+      ),
+    })),
+  ];
 
   const blueprint = buildBlueprint({
     sector,
@@ -250,6 +297,86 @@ export default async function ProjectBlueprintPage({
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ---------- Platform Stack & Ecosystem Fit ---------- */}
+      <section className="space-y-4">
+        <SectionTitle>Platform Stack &amp; Ecosystem Fit</SectionTitle>
+
+        <div className="space-y-3">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Primary stack</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {projectPlatformKeys.length > 0 ? (
+                projectPlatformKeys.map((key) => {
+                  const platform = platformByKey.get(key);
+                  return (
+                    <Badge key={key} variant={platform?.tier === "anchor" ? "accent" : "outline"}>
+                      {platform?.name ?? key}
+                    </Badge>
+                  );
+                })
+              ) : (
+                <span className="text-sm text-slate-500 dark:text-slate-400">
+                  No platform stack recorded for this project.
+                </span>
+              )}
+            </div>
+          </div>
+
+          {projectPlatformVariants.map((variant, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Market variant — {variant.label.trim() || `Variant ${i + 1}`}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {variant.platformKeys.map((key) => {
+                  const platform = platformByKey.get(key);
+                  return (
+                    <Badge key={key} variant={platform?.tier === "anchor" ? "accent" : "outline"}>
+                      {platform?.name ?? key}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {projectPlatformKeys.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Role map &amp; friction</CardTitle>
+              <p className="text-xs text-slate-500">
+                How the selected stack divides capability work, and where it will rub.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <RoleMap stacks={roleMapStacks} platforms={platforms} />
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedAnchorPlatforms.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Native AI positioning</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2.5">
+              {selectedAnchorPlatforms.map((platform) => (
+                <p key={platform.key} className="text-sm text-slate-600 dark:text-slate-300">
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {platform.name} — {platform.nativeAi.name}:{" "}
+                  </span>
+                  {platform.nativeAi.description.split(/(?<=\.)\s/)[0]}
+                </p>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       {/* ---------- Obligations addressed ---------- */}

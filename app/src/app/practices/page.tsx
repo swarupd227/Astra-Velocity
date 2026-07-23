@@ -5,11 +5,12 @@ import { getSectorScope } from "@/lib/workspace-scope";
 export const metadata = { title: "Best Practices Hub — Astra Velocity" };
 
 export default async function PracticesPage() {
-  const [practices, allSectors, elements, obligations, scope] = await Promise.all([
+  const [practices, allSectors, elements, obligations, platforms, scope] = await Promise.all([
     contentStore.bestPractices(),
     contentStore.sectors(),
     contentStore.elements(),
     contentStore.obligations(),
+    contentStore.platforms(),
     getSectorScope(),
   ]);
 
@@ -32,6 +33,7 @@ export default async function PracticesPage() {
             bestPracticeKeys: el.bestPracticeKeys,
           }))}
           obligations={obligations.map((o) => ({ key: o.key, name: o.name }))}
+          platforms={platforms}
         />
       </div>
     </section>
