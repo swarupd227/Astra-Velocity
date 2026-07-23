@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { blankPayloadForKind } from "@/app/studio/kind-schemas";
+import { BestPracticeSchema, ElementSchema } from "@/content/types";
 
 /**
  * Gateway pipeline tests — no network, no database. The store (settings,
@@ -36,7 +38,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   settings({});
   getPromptTemplateMock.mockResolvedValue(null);
-  recordAiCallMock.mockResolvedValue(undefined);
+  recordAiCallMock.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -249,5 +251,73 @@ describe("mock provider schema-valid canned output", () => {
     expect(withoutSnippets.status).toBe("ok");
     expect(withoutSnippets.data?.answer).toMatch(/not in the library/i);
     expect(withoutSnippets.data?.citations).toEqual([]);
+  });
+
+  it("studio-enhance: extends the artifact's own array on an 'add'/'more' instruction, preserving unrelated fields", async () => {
+    settings({ "routing.default": { provider: "mock", model: "mock" } });
+
+    const payload = {
+      key: "cde-glossary-starter",
+      packKey: "vp-01",
+      type: "cde-library",
+      name: "Claims CDE Glossary",
+      pitch: "A starter glossary of claims critical data elements.",
+      description: "Five plain-English definitions curators can extend as coverage grows.",
+      soWhat: "Stewards stop reinventing definitions ad hoc.",
+      audience: ["data-steward"],
+      capabilities: ["catalog_metadata"],
+      bestPracticeKeys: ["cde-first"],
+      sectorAffinity: {},
+      scenarioAffinity: {},
+      toolTags: ["catalog-suite (Collibra, Atlan)"],
+      artifact: {
+        kind: "glossary",
+        terms: [
+          { term: "Claim Number", definition: "Unique identifier for a claim." },
+          { term: "Loss Date", definition: "Date the insured event occurred." },
+          { term: "Reserve", definition: "Estimated liability for an open claim." },
+          { term: "Adjuster", definition: "Person handling claim investigation and settlement." },
+          { term: "Coverage Line", definition: "The policy coverage the claim is filed under." },
+        ],
+      },
+    };
+
+    const user = `CONTENT KIND: element\n\nCURRENT PAYLOAD:\n${JSON.stringify(payload)}\n\nINSTRUCTION:\nAdd another glossary term for reinsurance cession`;
+
+    const result = await callModel({
+      feature: "studio-enhance",
+      system: "test",
+      user,
+      schema: ElementSchema,
+    });
+
+    expect(result.status).toBe("ok");
+    const data = result.data as typeof payload;
+    expect(data.artifact.terms).toHaveLength(payload.artifact.terms.length + 1);
+    expect(data.name).toBe(payload.name);
+    expect(data.key).toBe(payload.key);
+  });
+
+  it("studio-enhance: fills TODO placeholders (recursively) when the instruction is a plain edit, never touching the key", async () => {
+    settings({ "routing.default": { provider: "mock", model: "mock" } });
+
+    const payload = blankPayloadForKind("best-practice", "cde-first-always") as Record<
+      string,
+      unknown
+    >;
+    const user = `CONTENT KIND: best-practice\n\nCURRENT PAYLOAD:\n${JSON.stringify(payload)}\n\nINSTRUCTION:\nTighten the statement to be more concrete`;
+
+    const result = await callModel({
+      feature: "studio-enhance",
+      system: "test",
+      user,
+      schema: BestPracticeSchema,
+    });
+
+    expect(result.status).toBe("ok");
+    const data = result.data as Record<string, unknown>;
+    expect(data.key).toBe("cde-first-always");
+    expect(data.statement).not.toMatch(/^TODO/);
+    expect(data.title).not.toMatch(/^TODO/);
   });
 });

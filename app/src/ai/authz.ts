@@ -3,11 +3,13 @@ import { auth } from "@/auth";
 import { hasPermission, type Permission } from "@/lib/roles";
 
 /**
- * Route-handler guard for AI endpoints: session required, permission checked
- * server-side. Returns the user or a ready-to-send error response.
+ * Route-handler guard for AI endpoints: session required, permission(s)
+ * checked server-side. Pass a single permission or an array when a route
+ * requires more than one (e.g. studio-enhance needs both library.author AND
+ * ai.use). Returns the user or a ready-to-send error response.
  */
 export async function requireAiUser(
-  permission: Permission = "ai.use",
+  permission: Permission | Permission[] = "ai.use",
 ): Promise<{ user: { id: string; role: string } } | { error: NextResponse }> {
   const session = await auth();
   if (!session?.user?.id) {
@@ -15,10 +17,12 @@ export async function requireAiUser(
       error: NextResponse.json({ error: "Sign in to use the copilot." }, { status: 401 }),
     };
   }
-  if (!hasPermission(session.user.role, permission)) {
+  const required = Array.isArray(permission) ? permission : [permission];
+  const missing = required.filter((p) => !hasPermission(session.user.role, p));
+  if (missing.length > 0) {
     return {
       error: NextResponse.json(
-        { error: `Your role does not include ${permission}.` },
+        { error: `Your role does not include ${missing.join(", ")}.` },
         { status: 403 },
       ),
     };

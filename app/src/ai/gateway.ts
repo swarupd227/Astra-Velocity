@@ -57,6 +57,8 @@ export interface ModelResult<T = unknown> {
   degraded: boolean;
   redactionReport: Record<string, number>;
   errorDetail?: string;
+  /** The ai_calls row id this call was audited under, for traceability. */
+  callId: string | null;
 }
 
 /** Anthropic pricing, USD per million tokens (input, output). Ollama/mock cost 0. */
@@ -311,12 +313,178 @@ function mockCompose(user: string): string {
   return JSON.stringify(payload);
 }
 
+/**
+ * Studio AI Enhance mock: a deterministic, offline-friendly best-effort
+ * transform of the CURRENT payload so the feature demos usefully with zero
+ * API key. Two moves, chosen by the instruction text:
+ *   - "add"/"more"/etc.: lightly extend one existing array (the artifact's
+ *     own substantive array for artifact-bearing elements — glossary terms,
+ *     dq rules, cdes, etc. — or else the first top-level string array).
+ *   - otherwise: fill every TODO-placeholder string (recursively) with a
+ *     slightly more concrete placeholder that still needs a human's real
+ *     content before publishing.
+ * Every transform preserves the payload's shape, so it still validates
+ * against the kind's Zod schema.
+ */
+const TODO_PREFIX = "TODO";
+/** Field names that carry regex/enum-constrained identifiers — text is varied, never replaced wholesale. */
+const IDENTIFIER_FIELDS = new Set(["id", "key", "code", "kind", "domain", "severity"]);
+
+function parseStudioEnhanceUser(
+  user: string,
+): { kind: string; payload: Record<string, unknown>; instruction: string } | null {
+  const kindMatch = /^CONTENT KIND:\s*(\S+)/m.exec(user);
+  const payloadMatch = /CURRENT PAYLOAD:\n([\s\S]*?)\n\nINSTRUCTION:/m.exec(user);
+  const instructionMatch = /INSTRUCTION:\n([\s\S]*?)\n*(?:<\/untrusted_data>|$)/m.exec(user);
+  if (!kindMatch || !payloadMatch) return null;
+  let payload: unknown;
+  try {
+    payload = JSON.parse(payloadMatch[1]);
+  } catch {
+    return null;
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  return {
+    kind: kindMatch[1],
+    payload: payload as Record<string, unknown>,
+    instruction: (instructionMatch?.[1] ?? "").trim(),
+  };
+}
+
+function nearestFieldName(path: string[]): string {
+  for (let i = path.length - 1; i >= 0; i--) {
+    if (!/^\d+$/.test(path[i])) return path[i];
+  }
+  return "field";
+}
+
+function concretePlaceholder(kind: string, path: string[], instruction: string): string {
+  const field = nearestFieldName(path);
+  const hint = instruction.slice(0, 60);
+  return `${kind} ${field} — drafted per "${hint || "the requested change"}"; replace with the concrete, insurance-specific detail before publishing.`;
+}
+
+/** Recursively replace TODO-placeholder strings with a more concrete (still human-reviewable) placeholder. */
+function fillTodoPlaceholders(
+  value: unknown,
+  path: string[],
+  kind: string,
+  instruction: string,
+): unknown {
+  if (typeof value === "string") {
+    return value.startsWith(TODO_PREFIX) ? concretePlaceholder(kind, path, instruction) : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v, i) => fillTodoPlaceholders(v, [...path, String(i)], kind, instruction));
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = fillTodoPlaceholders(v, [...path, k], kind, instruction);
+    }
+    return out;
+  }
+  return value;
+}
+
+/** Vary one descriptive string field of a cloned artifact item; never touch identifier-shaped fields. */
+function varyClonedItem(item: Record<string, unknown>, n: number): Record<string, unknown> {
+  const clone: Record<string, unknown> = { ...item };
+  for (const [k, v] of Object.entries(clone)) {
+    if (IDENTIFIER_FIELDS.has(k)) continue;
+    if (typeof v === "string" && v.length > 0) {
+      clone[k] = `${v} (additional variant ${n})`;
+      break;
+    }
+  }
+  // Keep any kebab-case identifier unique so the addition doesn't collide with its source.
+  for (const idField of ["id", "key"]) {
+    const v = clone[idField];
+    if (typeof v === "string" && v.length > 0) {
+      clone[idField] = `${v}-${n}`;
+      break;
+    }
+  }
+  return clone;
+}
+
+function deriveStringArrayEntry(field: string, instruction: string, n: number): string {
+  const hint = instruction.slice(0, 60);
+  return `Additional ${field.replace(/([A-Z])/g, " $1").toLowerCase()} #${n}${hint ? ` — ${hint}` : ""}`;
+}
+
+/** Enum/key arrays that happen to be string[] but must never receive a freeform entry. */
+const ENUM_OR_KEY_ARRAY_FIELDS = new Set([
+  "capabilities",
+  "sectorKeys",
+  "scenarioKeys",
+  "obligationKeys",
+  "kpiKeys",
+  "bestPracticeKeys",
+  "dataDomains",
+  "involvedCategories",
+]);
+
+/**
+ * True for a string[] field that's plausibly prose (pain points, stakeholders,
+ * evidence expectations, …) rather than a constrained key/enum array. Real
+ * prose entries either contain a space or run longer than a typical
+ * kebab-case/enum token; this also happens to accept the TODO placeholder
+ * text, which is exactly what a blank draft's arrays start with.
+ */
+function isFreeTextArray(field: string, value: unknown[]): boolean {
+  if (ENUM_OR_KEY_ARRAY_FIELDS.has(field)) return false;
+  return value.every((v) => typeof v === "string" && (v.includes(" ") || v.length > 12));
+}
+
+/** Extend one array (artifact-first) per an "add"/"more" style instruction. Returns null if nothing eligible was found. */
+function extendOneArray(
+  payload: Record<string, unknown>,
+  instruction: string,
+): Record<string, unknown> | null {
+  const artifact = payload.artifact;
+  if (artifact && typeof artifact === "object" && !Array.isArray(artifact)) {
+    const a = { ...(artifact as Record<string, unknown>) };
+    for (const [field, value] of Object.entries(a)) {
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object" && value[0] !== null) {
+        const last = value[value.length - 1] as Record<string, unknown>;
+        a[field] = [...value, varyClonedItem(last, value.length + 1)];
+        return { ...payload, artifact: a };
+      }
+    }
+  }
+
+  for (const [field, value] of Object.entries(payload)) {
+    if (Array.isArray(value) && value.length > 0 && isFreeTextArray(field, value)) {
+      return { ...payload, [field]: [...value, deriveStringArrayEntry(field, instruction, value.length + 1)] };
+    }
+  }
+  return null;
+}
+
+function mockStudioEnhance(user: string): string {
+  const parsed = parseStudioEnhanceUser(user);
+  if (!parsed) return "{}";
+  const { kind, payload, instruction } = parsed;
+  const lowerInstruction = instruction.toLowerCase();
+  const wantsMore = /\b(add|more|another|extra|extend|additional)\b/.test(lowerInstruction);
+
+  if (wantsMore) {
+    const extended = extendOneArray(payload, instruction);
+    if (extended) return JSON.stringify(extended);
+  }
+
+  return JSON.stringify(fillTodoPlaceholders(payload, [], kind, instruction));
+}
+
 function callMock(args: { feature: string; user: string; hasSchema: boolean }): ProviderReply {
   let text: string;
   if (args.feature === "library-qa") {
     text = mockLibraryQa(args.user);
   } else if (args.feature === "copilot-compose") {
     text = mockCompose(args.user);
+  } else if (args.feature === "studio-enhance") {
+    text = mockStudioEnhance(args.user);
   } else if (args.hasSchema) {
     // Unknown schema'd feature: emit an empty object; the schema gate decides.
     text = "{}";
@@ -410,8 +578,8 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
 
   const audit = async (
     fields: Partial<Parameters<typeof recordAiCall>[0]> & { status: AiCallStatus },
-  ) => {
-    await recordAiCall({
+  ): Promise<string | null> => {
+    return recordAiCall({
       feature: req.feature,
       provider: routing.provider,
       model: routing.model,
@@ -427,7 +595,7 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
 
   // 3. Kill-switch: refuse, audit, return.
   if (await killSwitchEngaged(req.feature)) {
-    await audit({ status: "killed", errorDetail: "kill-switch engaged" });
+    const callId = await audit({ status: "killed", errorDetail: "kill-switch engaged" });
     return {
       status: "killed",
       text: "",
@@ -437,6 +605,7 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
       redactionReport: redaction.report,
       errorDetail:
         "AI assistance is paused by an administrator (kill-switch). Manual workflows remain available.",
+      callId,
     };
   }
 
@@ -484,7 +653,7 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
     reply = await invokeWithFallback(containedUser);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    await audit({ status: "error", provider, model, errorDetail: detail });
+    const callId = await audit({ status: "error", provider, model, errorDetail: detail });
     return {
       status: "error",
       text: "",
@@ -493,6 +662,7 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
       degraded,
       redactionReport: redaction.report,
       errorDetail: detail,
+      callId,
     };
   }
 
@@ -536,7 +706,7 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
   const status: AiCallStatus = req.schema && data === undefined ? "error" : "ok";
 
   // 6. Audit — always. Records the provider that actually answered.
-  await audit({
+  const callId = await audit({
     status,
     provider,
     model,
@@ -555,5 +725,6 @@ export async function callModel<T = unknown>(req: ModelRequest<T>): Promise<Mode
     degraded,
     redactionReport: redaction.report,
     errorDetail: errorDetail ?? undefined,
+    callId,
   };
 }

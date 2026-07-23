@@ -145,6 +145,7 @@ export default async function StudioItemPage({
               {item.status === "draft" ? (
                 <DraftEditor
                   id={item.id}
+                  kind={item.kind}
                   kindLabel={KIND_LABELS[item.kind]}
                   initialPayload={payloadJson}
                 />

@@ -57,22 +57,30 @@ export async function getPromptTemplate(
   }
 }
 
-/** Append the immutable audit row. Every model call — ok, killed, or errored — lands here. */
-export async function recordAiCall(record: AiCallRecord): Promise<void> {
-  await db.insert(aiCalls).values({
-    feature: record.feature,
-    provider: record.provider,
-    model: record.model,
-    promptTemplateKey: record.promptTemplateKey ?? null,
-    promptTemplateVersion: record.promptTemplateVersion ?? null,
-    redactionReport: record.redactionReport ?? null,
-    inputTokens: record.inputTokens ?? null,
-    outputTokens: record.outputTokens ?? null,
-    costUsd: record.costUsd ?? null,
-    latencyMs: record.latencyMs ?? null,
-    status: record.status,
-    errorDetail: record.errorDetail ?? null,
-    userId: record.userId ?? null,
-    workspaceId: record.workspaceId ?? null,
-  });
+/**
+ * Append the immutable audit row. Every model call — ok, killed, or errored —
+ * lands here. Returns the row id so callers can surface it (e.g. as
+ * `callId` in an API response) for traceability back to ai_calls.
+ */
+export async function recordAiCall(record: AiCallRecord): Promise<string | null> {
+  const [row] = await db
+    .insert(aiCalls)
+    .values({
+      feature: record.feature,
+      provider: record.provider,
+      model: record.model,
+      promptTemplateKey: record.promptTemplateKey ?? null,
+      promptTemplateVersion: record.promptTemplateVersion ?? null,
+      redactionReport: record.redactionReport ?? null,
+      inputTokens: record.inputTokens ?? null,
+      outputTokens: record.outputTokens ?? null,
+      costUsd: record.costUsd ?? null,
+      latencyMs: record.latencyMs ?? null,
+      status: record.status,
+      errorDetail: record.errorDetail ?? null,
+      userId: record.userId ?? null,
+      workspaceId: record.workspaceId ?? null,
+    })
+    .returning({ id: aiCalls.id });
+  return row?.id ?? null;
 }

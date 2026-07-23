@@ -8,6 +8,26 @@ describe("prompt templates", () => {
     expect(keys).toContain("copilot-compose@1");
   });
 
+  it("ships studio-content-enhance v1", () => {
+    const keys = PROMPT_TEMPLATES.map((t) => `${t.key}@${t.version}`);
+    expect(keys).toContain("studio-content-enhance@1");
+  });
+
+  it("studio-content-enhance instructs full-payload output, field preservation, and no fabricated names", () => {
+    const def = fallbackTemplate("studio-content-enhance")!;
+    expect(def.template.toLowerCase()).toContain("full");
+    expect(def.template.toLowerCase()).toContain("preserve every field");
+    expect(def.template.toLowerCase()).toContain("never fabricate");
+    expect(def.template).toContain("{{kind}}");
+  });
+
+  it("studio-content-enhance interpolates the kind variable", () => {
+    const def = fallbackTemplate("studio-content-enhance")!;
+    const rendered = interpolate(def.template, { appName: "Astra Velocity", kind: "best-practice" });
+    expect(rendered).toContain("matching the best-practice schema");
+    expect(rendered).not.toContain("{{kind}}");
+  });
+
   it("every template restates the untrusted_data containment rule", () => {
     for (const t of PROMPT_TEMPLATES) {
       expect(t.template).toContain("<untrusted_data>");

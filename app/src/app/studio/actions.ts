@@ -301,7 +301,35 @@ export async function createBlankDraftAction(
     return { ok: false, error: `${kind}/${key} already exists — choose a different key.` };
   }
 
-  const payload = blankPayloadForKind(kind, key);
+  // The form seeds this field with the blank schema-valid skeleton and lets the author
+  // apply an AI Enhance suggestion into it before creating — never auto-generated content
+  // reaching the DB unseen. Fall back to the skeleton if the field is missing entirely
+  // (e.g. a pre-existing client); a present-but-invalid payload is a real error, since a
+  // silent fallback there would look like an accepted AI suggestion was discarded.
+  const rawPayload = formData.get("payload");
+  let payload: unknown;
+  if (typeof rawPayload === "string" && rawPayload.trim().length > 0) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(rawPayload);
+    } catch (err) {
+      return { ok: false, error: `Payload is not valid JSON: ${err instanceof Error ? err.message : String(err)}` };
+    }
+    const schemaCheck = KIND_SCHEMAS[kind].safeParse(parsed);
+    if (!schemaCheck.success) {
+      return {
+        ok: false,
+        error: `Payload does not satisfy the ${kind} schema: ${schemaCheck.error.issues[0]?.message ?? "invalid"}`,
+      };
+    }
+    const checked = schemaCheck.data as { key?: string };
+    if (checked.key !== key) {
+      return { ok: false, error: `Payload's key ("${String(checked.key)}") must equal the chosen key ("${key}").` };
+    }
+    payload = schemaCheck.data;
+  } else {
+    payload = blankPayloadForKind(kind, key);
+  }
   const checksum = checksumOf(payload);
 
   const [created] = await db

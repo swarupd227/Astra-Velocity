@@ -5,17 +5,21 @@ import { FilePlus2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
+import { AiEnhancePanel } from "@/components/studio/ai-enhance-panel";
 import type { ContentKind } from "@/content/types";
 import { createBlankDraftAction, type CreateBlankDraftState } from "./actions";
-import { KIND_LABELS } from "./kind-schemas";
+import { blankPayloadForKind, KIND_LABELS } from "./kind-schemas";
 
 const initialState: CreateBlankDraftState = { ok: false };
+const FREEFORM_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
  * "New content" entry point: kind + key, then a blank-but-schema-valid
  * draft. Sector/scenario/platform keys are fixed enums — offered as a
  * select of the values not already in use; every other kind takes a
- * freeform kebab-case key.
+ * freeform kebab-case key. AI Enhance sits beside the (hidden, but seeded
+ * and previewed) payload: describe what you want instead of hand-editing
+ * the TODO skeleton, then apply before creating.
  */
 export function NewContentForm({
   kinds,
@@ -26,6 +30,12 @@ export function NewContentForm({
 }) {
   const [state, formAction, pending] = useActionState(createBlankDraftAction, initialState);
   const [kind, setKind] = useState<ContentKind>(kinds[0]);
+  const [freeKey, setFreeKey] = useState("");
+  const [enumKeySel, setEnumKeySel] = useState(() => enumOptions[kinds[0]]?.[0] ?? "");
+  // An AI Enhance suggestion the author has applied, overriding the blank skeleton —
+  // cleared whenever kind or key changes (handled inline in the change handlers below,
+  // never via an effect, so applying it never cascades an extra render).
+  const [payloadOverride, setPayloadOverride] = useState<unknown>(null);
 
   useEffect(() => {
     if (!state.ok && state.error) toast(state.error, "error");
@@ -33,6 +43,33 @@ export function NewContentForm({
 
   const availableEnumKeys = useMemo(() => enumOptions[kind], [enumOptions, kind]);
   const isEnumKind = availableEnumKeys !== undefined;
+  const key = isEnumKind ? enumKeySel : freeKey.trim();
+  const keyIsValid = isEnumKind ? Boolean(enumKeySel) : FREEFORM_KEY_PATTERN.test(key);
+
+  // Seeded skeleton for the chosen kind+key; AI Enhance drafts a suggestion starting from
+  // this instead of the author hand-editing the TODO placeholders.
+  const blankSkeleton = useMemo(
+    () => blankPayloadForKind(kind, key || "todo-key"),
+    [kind, key],
+  );
+  const payload = payloadOverride ?? blankSkeleton;
+
+  function handleKindChange(next: ContentKind) {
+    setKind(next);
+    setEnumKeySel(enumOptions[next]?.[0] ?? "");
+    setFreeKey("");
+    setPayloadOverride(null);
+  }
+
+  function handleFreeKeyChange(next: string) {
+    setFreeKey(next);
+    setPayloadOverride(null);
+  }
+
+  function handleEnumKeyChange(next: string) {
+    setEnumKeySel(next);
+    setPayloadOverride(null);
+  }
 
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-5">
@@ -54,7 +91,7 @@ export function NewContentForm({
         <Select
           name="kind"
           value={kind}
-          onChange={(e) => setKind(e.target.value as ContentKind)}
+          onChange={(e) => handleKindChange(e.target.value as ContentKind)}
         >
           {kinds.map((k) => (
             <option key={k} value={k}>
@@ -64,7 +101,12 @@ export function NewContentForm({
         </Select>
 
         {isEnumKind ? (
-          <Select name="key" defaultValue={availableEnumKeys[0] ?? ""} disabled={availableEnumKeys.length === 0}>
+          <Select
+            name="key"
+            value={enumKeySel}
+            onChange={(e) => handleEnumKeyChange(e.target.value)}
+            disabled={availableEnumKeys.length === 0}
+          >
             {availableEnumKeys.length === 0 ? (
               <option value="">No available keys — all in use</option>
             ) : (
@@ -78,6 +120,8 @@ export function NewContentForm({
         ) : (
           <Input
             name="key"
+            value={freeKey}
+            onChange={(e) => handleFreeKeyChange(e.target.value)}
             placeholder="new-item-key"
             required
             pattern="^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -85,10 +129,27 @@ export function NewContentForm({
           />
         )}
 
-        <Button type="submit" disabled={pending || (isEnumKind && availableEnumKeys.length === 0)}>
+        <input type="hidden" name="payload" value={JSON.stringify(payload)} />
+
+        <Button type="submit" disabled={pending || !keyIsValid}>
           {pending ? "Creating…" : `Create ${KIND_LABELS[kind]}`}
         </Button>
       </form>
+
+      {keyIsValid ? (
+        <div className="mt-4">
+          <AiEnhancePanel
+            kind={kind}
+            kindLabel={KIND_LABELS[kind]}
+            currentPayloadText={JSON.stringify(payload)}
+            onApply={setPayloadOverride}
+          />
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-slate-400 dark:text-slate-600">
+          Choose a kind and a valid key to enable AI Enhance for this draft.
+        </p>
+      )}
     </div>
   );
 }
