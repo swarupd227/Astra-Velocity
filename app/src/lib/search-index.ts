@@ -2,6 +2,7 @@ import { contentStore } from "@/content/store";
 import { PLATFORM_CATEGORY_LABELS } from "@/content/types";
 import type { NavGroup } from "@/lib/nav";
 import { getSectorScope, isInSectorScope } from "@/lib/workspace-scope";
+import { ARTIFACT_KIND_LABELS, resolveArtifact } from "@/components/library/artifact-stat";
 import { TYPE_LABELS } from "@/components/library/type-labels";
 import type { SearchRow } from "@/components/command-palette";
 
@@ -42,9 +43,15 @@ export async function buildSearchIndex(nav: NavGroup[]): Promise<SearchRow[]> {
 
   for (const el of scopedElements) {
     const pack = packByKey.get(el.packKey);
+    // Element TYPE (Template, Toolkit, …) and artifact FORMAT (Code, DQ Rules,
+    // …) are orthogonal — a governance-as-code element's type is often
+    // "template"/"toolkit", so without the format label here a palette
+    // search for "code" would never find it.
+    const artifact = resolveArtifact(el);
+    const formatLabel = artifact ? ARTIFACT_KIND_LABELS[artifact.kind] : undefined;
     rows.push({
       label: el.name,
-      sublabel: [pack?.code, TYPE_LABELS[el.type]].filter(Boolean).join(" · "),
+      sublabel: [pack?.code, TYPE_LABELS[el.type], formatLabel].filter(Boolean).join(" · "),
       href: `/library/${el.key}`,
       group: "Library elements",
     });

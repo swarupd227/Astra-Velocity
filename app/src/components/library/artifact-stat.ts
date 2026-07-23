@@ -1,6 +1,49 @@
 import type { Artifact, Element } from "@/content/types";
 import { ARTIFACTS } from "@/content/data/artifacts";
 
+/** Human label per artifact kind — drives the Library's "Format" filter. */
+export const ARTIFACT_KIND_LABELS: Record<Artifact["kind"], string> = {
+  glossary: "Glossary",
+  "dq-rules": "DQ Rules",
+  "cde-set": "CDE Set",
+  checklist: "Checklist",
+  template: "Template",
+  code: "Code",
+  curriculum: "Curriculum",
+  method: "Method",
+  "reference-data": "Reference Data",
+  "metric-spec": "Metric Spec",
+};
+
+/** Flattened, searchable text pulled from an artifact's own body — so search
+ * and the command palette can find a rule expression, a code snippet's
+ * language/description, or a glossary term even when the element's own
+ * pitch/description text never happens to say "code" or "yaml". */
+export function artifactSearchText(artifact: Artifact): string {
+  switch (artifact.kind) {
+    case "glossary":
+      return artifact.terms.map((t) => `${t.term} ${t.definition}`).join(" ");
+    case "dq-rules":
+      return artifact.rules.map((r) => `${r.name} ${r.expression} ${r.rationale}`).join(" ");
+    case "cde-set":
+      return artifact.cdes.map((c) => `${c.name} ${c.definition}`).join(" ");
+    case "checklist":
+      return artifact.sections.map((s) => `${s.title} ${s.items.join(" ")}`).join(" ");
+    case "template":
+      return artifact.sections.map((s) => `${s.title} ${s.purpose}`).join(" ");
+    case "code":
+      return `code ${artifact.language} ${artifact.description} ${artifact.snippet}`;
+    case "curriculum":
+      return artifact.modules.map((m) => `${m.title} ${m.topics.join(" ")}`).join(" ");
+    case "method":
+      return artifact.steps.map((s) => `${s.name} ${s.description}`).join(" ");
+    case "reference-data":
+      return artifact.sets.map((s) => `${s.name} ${s.codes.map((c) => c.label).join(" ")}`).join(" ");
+    case "metric-spec":
+      return artifact.metrics.map((m) => `${m.name} ${m.definition}`).join(" ");
+  }
+}
+
 /**
  * Resolve an element's working artifact: prefer the published payload from the
  * content store, fall back to the authored ARTIFACTS map so freshly authored

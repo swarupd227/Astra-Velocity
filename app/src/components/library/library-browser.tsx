@@ -7,6 +7,7 @@ import {
   ELEMENT_TYPES,
   PLATFORM_CATEGORIES,
   PLATFORM_CATEGORY_LABELS,
+  type Artifact,
   type Capability,
   type Element,
   type ElementType,
@@ -16,20 +17,45 @@ import {
 } from "@/content/types";
 import { Badge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
+import { ARTIFACT_KIND_LABELS } from "./artifact-stat";
 import { ElementCard } from "./element-card";
 import { TYPE_LABELS } from "./type-labels";
+
+type ArtifactKind = Artifact["kind"];
+/** Kinds actually worth offering in the filter, in a stable, meaningful order. */
+const FORMAT_ORDER: ArtifactKind[] = [
+  "code",
+  "dq-rules",
+  "cde-set",
+  "glossary",
+  "template",
+  "checklist",
+  "method",
+  "curriculum",
+  "reference-data",
+  "metric-spec",
+];
 
 /** Client-side filterable browser over all pack elements, grouped by pack. */
 export function LibraryBrowser({
   packs,
   elements,
   stats,
+  artifactKinds,
+  artifactSearch,
   platforms,
 }: {
   packs: Pack[];
   elements: Element[];
   /** Element key → concrete artifact stat ("24 terms"), computed server-side. */
   stats: Record<string, string>;
+  /** Element key → artifact kind ("code", "glossary", …) — drives the Format filter.
+   * Governance-as-code examples are real elements whose TYPE is "template" or
+   * "toolkit" (element type ≠ artifact format), so this is the only way to find
+   * "every Code artifact" in one click instead of by luck while scrolling. */
+  artifactKinds: Record<string, ArtifactKind>;
+  /** Element key → flattened text from inside the artifact body, folded into search. */
+  artifactSearch: Record<string, string>;
   platforms: Platform[];
 }) {
   const [query, setQuery] = useState("");
@@ -37,6 +63,12 @@ export function LibraryBrowser({
   const [capability, setCapability] = useState<"" | Capability>("");
   const [packKey, setPackKey] = useState("");
   const [platformKey, setPlatformKey] = useState<"" | PlatformKey>("");
+  const [format, setFormat] = useState<"" | ArtifactKind>("");
+
+  const availableFormats = useMemo(() => {
+    const present = new Set(Object.values(artifactKinds));
+    return FORMAT_ORDER.filter((k) => present.has(k));
+  }, [artifactKinds]);
 
   const sortedPacks = useMemo(
     () => [...packs].sort((a, b) => a.code.localeCompare(b.code)),
@@ -56,6 +88,7 @@ export function LibraryBrowser({
     const q = query.trim().toLowerCase();
     return elements.filter((el) => {
       if (type && el.type !== type) return false;
+      if (format && artifactKinds[el.key] !== format) return false;
       if (capability && !el.capabilities.includes(capability)) return false;
       if (packKey && el.packKey !== packKey) return false;
       // Skip elements with no platformAffinity data when a platform filter is active.
@@ -63,14 +96,21 @@ export function LibraryBrowser({
         return false;
       }
       if (q) {
-        const haystack = [el.name, el.pitch, el.description, el.soWhat, ...el.toolTags]
+        const haystack = [
+          el.name,
+          el.pitch,
+          el.description,
+          el.soWhat,
+          ...el.toolTags,
+          artifactSearch[el.key] ?? "",
+        ]
           .join(" ")
           .toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
-  }, [elements, query, type, capability, packKey, platformKey]);
+  }, [elements, query, type, format, capability, packKey, platformKey, artifactKinds, artifactSearch]);
 
   const groups = sortedPacks
     .map((pack) => ({ pack, items: filtered.filter((el) => el.packKey === pack.key) }))
@@ -79,10 +119,10 @@ export function LibraryBrowser({
   return (
     <div>
       {/* Filter row */}
-      <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <Input
           type="search"
-          placeholder="Search elements, pitches, tools…"
+          placeholder="Search elements, pitches, tools, rule text…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search elements"
@@ -96,6 +136,18 @@ export function LibraryBrowser({
           {ELEMENT_TYPES.map((t) => (
             <option key={t} value={t}>
               {TYPE_LABELS[t]}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={format}
+          onChange={(e) => setFormat(e.target.value as "" | ArtifactKind)}
+          aria-label="Filter by format"
+        >
+          <option value="">All formats</option>
+          {availableFormats.map((f) => (
+            <option key={f} value={f}>
+              {ARTIFACT_KIND_LABELS[f]}
             </option>
           ))}
         </Select>
@@ -140,6 +192,13 @@ export function LibraryBrowser({
           ))}
         </Select>
       </div>
+
+      {format === "code" && (
+        <p className="mt-3 rounded-lg border border-teal-500/30 bg-teal-500/5 dark:bg-teal-500/10 px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
+          Governance-as-code: declarative definitions — classification chains, DQ rules, access
+          policy, CI pipelines — that deploy into your platforms, not documentation about them.
+        </p>
+      )}
 
       <p className="mt-3 text-xs text-slate-500">
         {filtered.length} of {elements.length} elements
