@@ -62,13 +62,6 @@ async function go(page: Page, url: string, text: string, settleMs = 1400) {
   await dwell(page, settleMs);
 }
 
-/** The header role-switcher is the only bare <select> outside /library's Format filter. */
-async function switchPersona(page: Page, label: string) {
-  const select = page.locator("header select").first();
-  await select.selectOption({ label });
-  await dwell(page, 1000);
-}
-
 /** Shared look for the title cards — same dark theme + teal accent as the app itself. */
 function titleCardShell(logoDataUri: string, logoWidth: number, body: string) {
   return `<!doctype html>
@@ -157,107 +150,103 @@ async function main() {
   // --- 0. Opening title card (~4.5s)
   await titleCard(page, introHtml(logoDataUri), 4500);
 
-  // --- 1. Login (~14s)
+  // --- 1. Login (~8s, no login-mechanics narration)
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
-  await caption(page, "Astra Velocity — insurance data governance, composed. Six roles, one platform.");
-  await dwell(page, 2500);
+  await caption(page, "Real insurance obligations, real platforms, real working assets — not a generic governance template.");
+  await dwell(page, 3000);
   await page.fill('input[name="email"]', EMAIL);
   await page.fill('input[name="password"]', PASSWORD);
-  await dwell(page, 1200);
-  await caption(page, "Signing in as Platform Admin…");
   await Promise.all([page.waitForURL("**/admin", { timeout: 30000 }), page.click('button[type="submit"]')]);
-  await dwell(page, 2000);
+  await dwell(page, 1500);
 
-  // --- 2. Role switcher (~16s)
-  await caption(page, "One login, six functional experiences — the role switcher reshapes nav without changing the underlying permission.");
-  await dwell(page, 2500);
-  await switchPersona(page, "Data Steward");
-  await page.waitForLoadState("networkidle");
-  await caption(page, "Viewing as Data Steward — the sidebar now shows My Day and Agents, nothing an admin-only surface would dead-end into.");
-  await dwell(page, 3000);
-  await switchPersona(page, "Executive / CDO");
-  await page.waitForLoadState("networkidle");
-  await caption(page, "Viewing as Executive — value dashboards and portfolio burn-up, not authoring tools.");
-  await dwell(page, 2500);
-  await switchPersona(page, "Platform Admin");
-  await page.waitForLoadState("networkidle");
-  await dwell(page, 1200);
-
-  // --- 3. Composer: sector, business context, scenario (~24s)
-  await go(page, "/composer", "The Composer — pick the client's sector and scenario, and a third dimension: their actual technology stack.");
+  // --- 2. Composer: sector — Personal Lines P&C (~14s)
+  await go(page, "/composer", "P&C — Personal Lines: high-volume auto and home, priced by the model, judged by the month-end flash.");
   const sectorCard = page.locator('a[href*="sector=pc-personal"]').first();
   if (await sectorCard.count()) {
     await sectorCard.click();
     await page.waitForLoadState("networkidle");
   }
+
+  // --- 3. Composer: business context — the obligations and KPIs this sector actually carries (~20s)
   const bizContext = page.getByRole("button", { name: "Business context" }).first();
   if (await bizContext.count()) {
     await bizContext.click();
-    await caption(page, "Business context arrives on demand — value chain, obligations, KPIs — not a slideware page you have to leave the workflow for.");
-    await dwell(page, 3200);
+    await caption(page, "Schedule P loss development, the NAIC Model Audit Rule, SOX 302/404 ICFR — obligations this sector actually carries.");
+    await dwell(page, 4000);
+    await scrollBy(page, 400, 3);
+    await caption(page, "Loss ratio, combined ratio, written and earned premium — each with its real formula, not a placeholder metric.");
+    await dwell(page, 4000);
     const closeBiz = page.locator('button[aria-label="Close business context"]');
     if (await closeBiz.count()) await closeBiz.click();
     await dwell(page, 600);
   }
 
-  // --- 4. Composer: platform & technology stack (~26s)
+  // --- 4. Composer: scenario — Report Integrity, then the assembled pack (~14s)
   await go(
     page,
     "/composer?sector=pc-personal&scenario=report-integrity",
-    "Technology & Platform Stack — the recommendation engine reads the client's real stack, not a generic template.",
-    2000,
+    "Scenario: Report Integrity — one number, one definition, one lineage, so leadership stops caveating its own reports.",
+    2200,
   );
-  await scrollBy(page, 500, 3);
-  const platformChip = page.locator("button[aria-pressed]").first();
-  if (await platformChip.count()) {
-    await platformChip.click();
-    await dwell(page, 800);
-  }
-  const aboutBtn = page.locator('button[aria-label^="About "]').first();
-  if (await aboutBtn.count()) {
-    await aboutBtn.click();
-    await caption(page, "Every platform's native AI is described honestly — including where it's thin, not just where it's marketed.");
-    await dwell(page, 3200);
+  await scrollBy(page, 400, 3);
+
+  // --- 5. Composer: the client's actual technology & platform stack (~34s)
+  await caption(page, "Technology & Platform Stack — model the client's real vendors, not a reference architecture.");
+  await dwell(page, 2600);
+  const snowflakeChip = page.getByRole("button", { name: /Snowflake/ }).first();
+  if (await snowflakeChip.count()) await snowflakeChip.click();
+  const bigidChip = page.getByRole("button", { name: /^BigID/ }).first();
+  if (await bigidChip.count()) await bigidChip.click();
+  const immutaChip = page.getByRole("button", { name: /^Immuta/ }).first();
+  if (await immutaChip.count()) await immutaChip.click();
+  await dwell(page, 1000);
+  await caption(page, "Snowflake for enforcement, BigID for classification, Immuta for purpose-based access — this client's actual stack.");
+  await dwell(page, 3200);
+  const aboutImmuta = page.locator('button[aria-label="About Immuta"]').first();
+  if (await aboutImmuta.count()) {
+    await aboutImmuta.click();
+    await caption(page, "Immuta's own profile, stated plainly: it enforces purpose-based policy — it does not generate the labels it enforces. Those come from BigID.");
+    await dwell(page, 4200);
     const closeProfile = page.locator('button[aria-label="Close platform profile"]');
     if (await closeProfile.count()) await closeProfile.click();
     await dwell(page, 600);
   }
-  const addVariant = page.getByRole("button", { name: "Add a market variant" });
-  if (await addVariant.count()) {
-    await addVariant.click();
-    await caption(page, "Market variants — model a platform outside the named anchor list without losing the recommendation logic.");
-    await dwell(page, 2500);
-    const removeVariant = page.locator('button[aria-label="Remove market variant"]').first();
-    if (await removeVariant.count()) await removeVariant.click();
-  }
   await scrollBy(page, 600, 4);
-  await caption(page, "Best practices and regulatory obligations are the visible rationale — 'why this is in your pack'.");
-  await dwell(page, 3000);
+  await caption(page, "Every recommended element traces back to a named obligation or KPI — Schedule P, SOX ICFR, loss ratio — 'why this is in your pack.'");
+  await dwell(page, 3800);
 
-  // --- 5. Library + governance-as-code (~28s)
-  await go(page, "/library", "The Velocity Pack Library — every element carries a real working asset, not a description of one.");
+  // --- 6. Library: the Velocity Pack Library (~10s)
+  await go(page, "/library", "The Velocity Pack Library — 22 packs, every element a real working asset, not a description of one.");
+  await dwell(page, 1200);
+
+  // --- 7. Library: governance-as-code, VP-03 (~34s)
   const formatSelect = page.locator('select[aria-label="Filter by format"]');
   if (await formatSelect.count()) {
     await formatSelect.selectOption("code");
-    await caption(page, "Governance-as-code: declarative classification, DQ rules, and access policy that deploy into the stack, not documents about it.");
-    await dwell(page, 3000);
+    await caption(page, "VP-03 — the Governance-as-Code Starter Repo: declarative policy that deploys into the stack, not documentation about it.");
+    await dwell(page, 3800);
   }
-  const codeElement = page.locator('a[href^="/library/"]').first();
-  if (await codeElement.count()) {
-    await codeElement.click();
+  const immutaCodeLink = page.locator('a[href="/library/immuta-purpose-policy-as-code"]').first();
+  if (await immutaCodeLink.count()) {
+    await immutaCodeLink.click();
     await page.waitForLoadState("networkidle");
-    await scrollBy(page, 500, 3);
-    await caption(page, "Real source — dbt tests, Immuta policy YAML, BigID classifiers — copy-ready, with the platform it targets named.");
-    await dwell(page, 3500);
+    await scrollBy(page, 400, 3);
+    await caption(page, "Immuta's purpose-based policy in YAML — claims handling vs. analytics access to claimant medical and financial fields.");
+    await dwell(page, 4200);
+    await caption(page, "It consumes BigID's classification tags rather than inventing its own labels — copy-ready, platform named.");
+    await dwell(page, 3400);
+  }
+  const bigidCodeLink = page.locator('a[href="/library/bigid-classifier-correlation-policy-as-code"]').first();
+  if (await bigidCodeLink.count()) {
+    await bigidCodeLink.click();
+    await page.waitForLoadState("networkidle");
+    await scrollBy(page, 400, 3);
+    await caption(page, "BigID's own classifier and cross-source correlation policy — the label Immuta consumes, matching policy, claims, and producer-licensing records to one subject.");
+    await dwell(page, 4200);
   }
 
-  // --- 6. Best Practices (~10s)
-  await go(page, "/practices", "The Best Practices Hub — every practice with its anti-pattern and the elements that operationalize it.");
-  await scrollBy(page, 700, 4);
-  await dwell(page, 1800);
-
-  // --- 7. Library Studio + AI Enhance (~26s)
-  await go(page, "/studio", "Library Studio — draft, validate, publish. Every authoring scenario now has an AI option beside the manual one.");
+  // --- 8. Library Studio + AI Enhance (~26s)
+  await go(page, "/studio", "Library Studio — draft, validate, publish. Every authoring scenario has AI enhancement beside the manual draft.");
   const openDraft = page
     .locator("a, button")
     .filter({ hasText: /Open draft revision|Create draft revision/ })
@@ -265,56 +254,58 @@ async function main() {
   if (await openDraft.count()) {
     await openDraft.click();
     await page.waitForLoadState("networkidle");
-    await caption(page, "AI Enhance sits side by side with the manual draft — never a hidden replacement for the human editor.");
-    await dwell(page, 2500);
+    await caption(page, "AI Enhance sits side by side with the manual draft — never a hidden replacement for the human curator.");
+    await dwell(page, 2800);
     const instruction = page.locator('textarea[aria-label="AI Enhance instruction"]');
     if (await instruction.count()) {
       await instruction.fill("Tighten the description and add one missing edge case.");
       await dwell(page, 600);
       const enhanceBtn = page.getByRole("button", { name: "Enhance with AI" });
       await enhanceBtn.click();
-      await caption(page, "Every AI call runs through the same gateway — PII redaction, provider routing, full audit — no side channel.");
+      await caption(page, "Every AI call — including this one — runs through one gateway: PII redaction, provider routing, full audit.");
       await dwell(page, 5000);
       const applyBtn = page.getByRole("button", { name: "Apply to draft" });
       if (await applyBtn.count()) {
         await caption(page, "The curator reviews and applies — or discards. AI drafts, a human still decides.");
-        await dwell(page, 2500);
+        await dwell(page, 2600);
       }
     }
   }
 
-  // --- 8. Copilot (~16s)
+  // --- 9. Copilot (~18s)
   await go(page, "/copilot", "The Governance Copilot — grounded in the library, PII-redacted, every call audited.");
   const askInput = page.locator('input[aria-label="Ask the library"]');
   if (await askInput.count()) {
     await askInput.fill("What does good lineage look like for Schedule P?");
     await dwell(page, 800);
     await page.keyboard.press("Enter");
-    await caption(page, "Answers cite their sources — and admit when something is not in the library.");
-    await dwell(page, 5500);
+    await caption(page, "Answers cite their sources against the actual library — and admit when something isn't in it.");
+    await dwell(page, 6000);
   }
 
-  // --- 9. Steward + agents (~18s)
-  await go(page, "/steward", "Agents draft — stewards decide. Glossary terms, DQ rules, and classifications arrive as suggestions.");
+  // --- 10. Steward + agents (~22s)
+  await go(page, "/steward", "Agents draft — stewards decide. NPPI classifications and Schedule P data-quality suggestions arrive for review, not auto-applied.");
   await scrollBy(page, 500, 3);
+  await dwell(page, 1200);
   const approve = page.locator("button", { hasText: "Approve" }).first();
   if (await approve.count()) {
     await approve.click();
     await caption(page, "One click to approve — the decision lands in the audit log with the steward's name on it.");
-    await dwell(page, 3000);
+    await dwell(page, 3200);
   }
-  await go(page, "/agents", "Six agent co-workers with live acceptance telemetry — agents that drift get benched.");
+  await go(page, "/agents", "Six agent co-workers with live acceptance telemetry — an agent that drifts on real decisions gets benched, not trusted blindly.");
   await scrollBy(page, 500, 3);
-  await dwell(page, 1500);
+  await dwell(page, 2000);
 
-  // --- 10. Dashboards (~16s)
-  await go(page, "/dashboards/gpi", "Live dashboards: the Governance Performance Index — burn-up toward 150 governed data products.");
+  // --- 11. Dashboards (~20s)
+  await go(page, "/dashboards/gpi", "Governance Performance Index — burn-up toward governed data products, the ones behind every loss-ratio and combined-ratio report.");
   await scrollBy(page, 500, 3);
-  await go(page, "/dashboards/value", "Executive value — incidents avoided, cycle times, and the economics of agent leverage.");
+  await dwell(page, 1200);
+  await go(page, "/dashboards/value", "Executive value — incidents avoided, access cycle time, and the economics of agent leverage, quarter over quarter.");
   await scrollBy(page, 400, 3);
-  await dwell(page, 1800);
+  await dwell(page, 2200);
 
-  // --- 11. Admin: Workspaces CRUD (~30s)
+  // --- 12. Admin: Workspaces CRUD (~30s)
   await go(page, "/admin/workspaces", "Admin now has full CRUD beyond seeded content — starting with workspaces.");
   const slug = `demo-video-${Date.now()}`;
   const nameInput = page.locator('input[placeholder="Workspace name"]');
@@ -362,24 +353,18 @@ async function main() {
     }
   }
 
-  // --- 12. Admin: AI governance (~14s)
+  // --- 13. Admin: AI governance (~14s)
   await go(page, "/admin/ai", "AI administration: model routing, kill-switches, encrypted provider keys, and cost telemetry.");
   await scrollBy(page, 500, 3);
   await dwell(page, 2500);
 
-  // --- 13. Theme (~8s)
-  const themeToggle = page.locator('button[aria-label="Toggle light / dark theme"]');
-  if (await themeToggle.count()) {
-    await caption(page, "Full light and dark theming — not an afterthought.");
-    await themeToggle.click();
-    await dwell(page, 2200);
-    await themeToggle.click();
-    await dwell(page, 800);
-  }
-
-  // --- 14. Close (~8s)
-  await go(page, "/exec", "Astra Velocity — compose the pack, model the real stack, govern with agents, prove the value. Thank you.");
-  await dwell(page, 4000);
+  // --- 14. Close (~10s)
+  await go(
+    page,
+    "/exec",
+    "P&C Personal Lines, Report Integrity, Snowflake/BigID/Immuta — compose the pack, govern with agents, prove the value.",
+    4200,
+  );
 
   // --- 15. Closing title card (~5.5s)
   await titleCard(page, outroHtml(logoDataUri), 5500);
