@@ -1,5 +1,5 @@
 import { chromium, type Page } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -12,6 +12,7 @@ import path from "node:path";
 const BASE = process.env.DEMO_BASE_URL ?? "http://localhost:3100";
 // Run from app/ — output lands in the repo-root demo/ folder.
 const OUT_DIR = path.resolve(process.cwd(), "..", "demo");
+const LOGO_PATH = path.resolve(process.cwd(), "scripts", "assets", "artizent-logo.png");
 const EMAIL = "platform.admin@astra.demo";
 const PASSWORD = process.env.SEED_PASSWORD ?? "AstraDemo!2026";
 
@@ -68,14 +69,93 @@ async function switchPersona(page: Page, label: string) {
   await dwell(page, 1000);
 }
 
+/** Shared look for the title cards — same dark theme + teal accent as the app itself. */
+function titleCardShell(logoDataUri: string, logoWidth: number, body: string) {
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: #020617;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .stage {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px; text-align: center; padding: 0 120px;
+    animation: fadein 700ms ease-out;
+  }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .logo { width: ${logoWidth}px; height: auto; display: block; }
+  .brand { font-size: 15px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: #2dd4bf; }
+  .wordmark { font-family: Georgia, "Times New Roman", serif; font-size: 56px; color: #ffffff; }
+  .wordmark-sm { font-family: Georgia, "Times New Roman", serif; font-size: 34px; color: #ffffff; }
+  .tagline { font-size: 22px; color: #cbd5e1; max-width: 760px; line-height: 1.5; }
+  .closing { font-family: Georgia, "Times New Roman", serif; font-size: 34px; color: #ffffff; max-width: 820px; line-height: 1.4; }
+  .cta-lead { font-size: 19px; color: #94a3b8; }
+  .cta-pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #2dd4bf; color: #020617; font-weight: 700; font-size: 20px;
+    padding: 12px 28px; border-radius: 9999px;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <img class="logo" src="${logoDataUri}" alt="Artizent" />
+    ${body}
+  </div>
+</body>
+</html>`;
+}
+
+// The logo file already carries the "ARTIZENT" wordmark baked in (white text,
+// invisible against a white preview background but rendered fine on this dark
+// card) — no separate brand label needed on top of it.
+function introHtml(logoDataUri: string) {
+  return titleCardShell(
+    logoDataUri,
+    260,
+    `
+    <span class="wordmark">Astra Velocity</span>
+    <p class="tagline">Insurance data governance — composed, explained, and governed with AI.</p>
+    `,
+  );
+}
+
+function outroHtml(logoDataUri: string) {
+  return titleCardShell(
+    logoDataUri,
+    190,
+    `
+    <span class="wordmark-sm">Astra Velocity</span>
+    <p class="closing">Compose the pack. Govern with agents. Prove the value.</p>
+    <p class="cta-lead">Ready to see it on your stack?</p>
+    <span class="cta-pill">Get in touch — www.artizent.com</span>
+    `,
+  );
+}
+
+async function titleCard(page: Page, html: string, ms: number) {
+  await page.setContent(html, { waitUntil: "load" });
+  await dwell(page, ms);
+}
+
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
+  const logoDataUri = `data:image/png;base64,${readFileSync(LOGO_PATH).toString("base64")}`;
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
     recordVideo: { dir: OUT_DIR, size: { width: 1280, height: 720 } },
   });
   const page = await context.newPage();
+
+  // --- 0. Opening title card (~4.5s)
+  await titleCard(page, introHtml(logoDataUri), 4500);
 
   // --- 1. Login (~14s)
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
@@ -300,6 +380,9 @@ async function main() {
   // --- 14. Close (~8s)
   await go(page, "/exec", "Astra Velocity — compose the pack, model the real stack, govern with agents, prove the value. Thank you.");
   await dwell(page, 4000);
+
+  // --- 15. Closing title card (~5.5s)
+  await titleCard(page, outroHtml(logoDataUri), 5500);
 
   const video = page.video();
   await context.close();
