@@ -7,10 +7,26 @@ import { Term } from "@/components/term";
 import { WelcomePanel } from "@/components/welcome-panel";
 import { BurnUp } from "@/components/viz/burn-up";
 import { getSimForCurrentUser } from "@/sim/context";
+import { auth } from "@/auth";
+import { hasPermission } from "@/lib/roles";
+import { AccessDenied } from "@/components/access-denied";
 
 export const metadata = { title: "Executive View — Astra Velocity" };
 
 export default async function ExecPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  if (!hasPermission(session.user.role, "dashboards.executive")) {
+    return (
+      <AccessDenied
+        title="Executive Value"
+        message="This is the portfolio value narrative for governance sponsors and leadership."
+        role={session.user.role}
+      />
+    );
+  }
+
   const ctx = await getSimForCurrentUser();
   if (!ctx) redirect("/login");
   const { portfolio, value } = ctx.sim;

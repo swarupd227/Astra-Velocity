@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { agentSuggestions } from "@/db/schema";
 import { contentStore } from "@/content/store";
+import { hasPermission } from "@/lib/roles";
+import { AccessDenied } from "@/components/access-denied";
 import { Badge } from "@/components/ui/badge";
 import { getWorkspaceForUser } from "@/sim/context";
 
@@ -23,6 +25,16 @@ interface AgentStats {
 export default async function AgentsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  if (!hasPermission(session.user.role, "agents.supervise")) {
+    return (
+      <AccessDenied
+        title="Agent Workbench"
+        message="Supervising agent co-worker suggestions requires the agent supervision permission."
+        role={session.user.role}
+      />
+    );
+  }
 
   const workspace = await getWorkspaceForUser(session.user.id);
 

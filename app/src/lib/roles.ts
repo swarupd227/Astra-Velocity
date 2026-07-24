@@ -60,7 +60,7 @@ const BASE_READ: Permission[] = ["library.read", "project.read"];
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   executive: [...BASE_READ, "dashboards.executive"],
   pursuit_lead: [...BASE_READ, "project.compose", "ai.use"],
-  delivery_lead: [...BASE_READ, "project.compose", "project.manage", "ai.use"],
+  delivery_lead: [...BASE_READ, "project.compose", "project.manage", "agents.supervise", "ai.use"],
   data_steward: [...BASE_READ, "steward.workqueue", "agents.supervise", "ai.use"],
   content_curator: [...BASE_READ, "library.author", "library.publish", "ai.use"],
   platform_admin: [...PERMISSIONS],

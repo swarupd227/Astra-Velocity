@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { auth } from "@/auth";
+import { hasPermission } from "@/lib/roles";
+import { AccessDenied } from "@/components/access-denied";
 import { contentStore } from "@/content/store";
 import type { SectorKey } from "@/content/types";
 import {
@@ -27,6 +31,19 @@ export default async function ComposerPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  if (!hasPermission(session.user.role, "project.compose")) {
+    return (
+      <AccessDenied
+        title="Project Composer"
+        message="Composing a governance project from Velocity Pack elements requires the project composition permission."
+        role={session.user.role}
+      />
+    );
+  }
+
   const sp = await searchParams;
   const sectorParam = typeof sp.sector === "string" ? sp.sector : undefined;
   const scenarioParam = typeof sp.scenario === "string" ? sp.scenario : undefined;
